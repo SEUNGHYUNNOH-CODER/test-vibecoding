@@ -1,0 +1,18 @@
+{
+  "folders": [
+    {
+      "name": "Root",
+      "path": "."
+    }
+  ],
+  "settings": {
+    // Your root .vscode/settings.json contents can go here
+    "editor.formatOnSave": true,
+    "[typescriptreact]": {
+      "editor.tabSize": 2,
+      "editor.insertSpaces": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+    },
+    "chatgpt.openOnStartup": true,
+  },
+}

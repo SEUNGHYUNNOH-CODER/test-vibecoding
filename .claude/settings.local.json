@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm config get prefix)",
+      "PowerShell(npm install -g pnpm 2>&1)",
+      "PowerShell(\"---installing pnpm---\")",
+      "PowerShell($env:Path = \"$env:APPDATA\\\\npm;$env:Path\"; pnpm --version)",
+      "PowerShell($env:Path = \"$env:APPDATA\\\\npm;$env:Path\"; Set-Location app; pnpm install 2>&1 | Select-Object -Last 15)"
+    ]
+  }
+}
