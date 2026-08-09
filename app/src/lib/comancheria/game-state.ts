@@ -49,8 +49,8 @@ export interface DrawCupState {
 }
 
 export interface DevelopmentDeckState {
-  /** card numbers face-up on the 3 development card spaces at top of map */
-  layout: number[];
+  /** card numbers face-up on the 3 development card spaces at top of map; null = empty slot */
+  layout: (number | null)[];
   drawPile: number[];
   discardPile: number[];
   inPlay: number[];

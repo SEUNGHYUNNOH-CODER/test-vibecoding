@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ActionsPanel } from "@/components/comancheria/ActionsPanel";
 import { CombatPanel } from "@/components/comancheria/CombatPanel";
+import { DevelopmentCardsPanel } from "@/components/comancheria/DevelopmentCardsPanel";
+import { CultureCardsPanel } from "@/components/comancheria/CultureCardsPanel";
 
 const TASK_LABEL: Record<PlayerTask, string> = {
   actions: "조치 수행",
@@ -161,14 +163,21 @@ export function TurnFlow({
             {gameState.selectedTask ? TASK_DESC[gameState.selectedTask] : ""}
           </p>
 
-          {gameState.selectedTask === "actions" ? (
+          {gameState.selectedTask === "actions" && (
             <ActionsPanel
               gameState={gameState}
               setGameState={setGameState}
               selectedBandId={selectedBandId}
               setSelectedBandId={setSelectedBandId}
             />
-          ) : (
+          )}
+          {gameState.selectedTask === "planning" && (
+            <DevelopmentCardsPanel gameState={gameState} setGameState={setGameState} />
+          )}
+          {gameState.selectedTask === "passage-of-time" && (
+            <CultureCardsPanel gameState={gameState} setGameState={setGameState} />
+          )}
+          {(gameState.selectedTask === "culture" || gameState.selectedTask === null) && (
             <div className="flex flex-wrap gap-2">
               <Button size="sm" variant="outline" onClick={handleDrawCup}>
                 Success Check 뽑기
