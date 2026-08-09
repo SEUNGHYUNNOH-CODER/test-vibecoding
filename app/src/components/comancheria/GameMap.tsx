@@ -36,14 +36,24 @@ function spaceColor(space: MapSpace) {
   return "#e7e2d6"; // hex (Palo Duro)
 }
 
-export function GameMap({ gameState }: { gameState?: GameState | null }) {
+export function GameMap({
+  gameState,
+  selectedBandId,
+  onSelectBand,
+}: {
+  gameState?: GameState | null;
+  selectedBandId?: string | null;
+  onSelectBand?: (bandId: string) => void;
+}) {
   const [selected, setSelected] = useState<MapSpace | null>(null);
   const [scale, setScale] = useState(1);
   const [pos, setPos] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
 
   function onPointerDown(e: React.PointerEvent) {
     dragRef.current = { startX: e.clientX, startY: e.clientY, origX: pos.x, origY: pos.y };
+    setIsDragging(true);
     (e.target as Element).setPointerCapture(e.pointerId);
   }
   function onPointerMove(e: React.PointerEvent) {
@@ -54,6 +64,7 @@ export function GameMap({ gameState }: { gameState?: GameState | null }) {
   }
   function onPointerUp() {
     dragRef.current = null;
+    setIsDragging(false);
   }
 
   const byId = Object.fromEntries(MAP_SPACES.map((s) => [s.id, s]));
@@ -95,7 +106,7 @@ export function GameMap({ gameState }: { gameState?: GameState | null }) {
           className="flex h-full w-full origin-center items-center justify-center"
           style={{
             transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale})`,
-            transition: dragRef.current ? "none" : "transform 100ms ease-out",
+            transition: isDragging ? "none" : "transform 100ms ease-out",
           }}
         >
           <div className="relative aspect-[1500/971] max-h-full w-full max-w-4xl">
@@ -221,6 +232,58 @@ export function GameMap({ gameState }: { gameState?: GameState | null }) {
                   </g>
                 );
               })}
+
+              {gameState &&
+                (() => {
+                  const bySpace: Record<string, typeof gameState.rancherias[number]["bands"]> = {};
+                  for (const r of gameState.rancherias) {
+                    for (const b of r.bands) {
+                      if (!b.spaceId) continue;
+                      (bySpace[b.spaceId] ??= []).push(b);
+                    }
+                  }
+                  return Object.entries(bySpace).flatMap(([spaceId, bands]) => {
+                    const s = byId[spaceId];
+                    if (!s) return [];
+                    return bands.map((b, i) => {
+                      const angle = (i / bands.length) * 2 * Math.PI;
+                      const bx = s.x + Math.cos(angle) * (bands.length > 1 ? 1.6 : 0);
+                      const by = s.y + Math.sin(angle) * (bands.length > 1 ? 1.6 : 0);
+                      const isSelected = b.id === selectedBandId;
+                      return (
+                        <g
+                          key={b.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectBand?.(b.id);
+                          }}
+                          className="cursor-pointer"
+                          style={{ pointerEvents: "all" }}
+                        >
+                          <circle
+                            cx={bx}
+                            cy={by}
+                            r={1.1}
+                            fill={b.status === "finished" ? "#999" : "#f4e7c1"}
+                            stroke={isSelected ? "#e63946" : "#2a2118"}
+                            strokeWidth={isSelected ? 0.3 : 0.15}
+                          />
+                          <text
+                            x={bx}
+                            y={by + 0.4}
+                            textAnchor="middle"
+                            fontSize={1.4}
+                            fill="#2a2118"
+                            fontWeight={700}
+                            style={{ pointerEvents: "none" }}
+                          >
+                            {b.strength}
+                          </text>
+                        </g>
+                      );
+                    });
+                  });
+                })()}
             </svg>
           </div>
         </div>

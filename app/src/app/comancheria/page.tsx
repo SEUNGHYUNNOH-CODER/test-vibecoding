@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 
 export default function ComancheriaPage() {
   const [gameState, setGameState] = useState<GameState | null>(null);
+  const [selectedBandId, setSelectedBandId] = useState<string | null>(null);
 
   return (
     <div className="flex h-dvh w-full flex-col">
@@ -24,13 +25,18 @@ export default function ComancheriaPage() {
         )}
       </header>
       <main className="min-h-0 flex-[3]">
-        <GameMap gameState={gameState} />
+        <GameMap gameState={gameState} selectedBandId={selectedBandId} onSelectBand={setSelectedBandId} />
       </main>
       {gameState && (
         <>
           <GameStatusPanel gameState={gameState} />
           <div className="min-h-0 flex-[2] overflow-y-auto border-t">
-            <TurnFlow gameState={gameState} setGameState={setGameState} />
+            <TurnFlow
+              gameState={gameState}
+              setGameState={setGameState}
+              selectedBandId={selectedBandId}
+              setSelectedBandId={setSelectedBandId}
+            />
           </div>
         </>
       )}

@@ -14,6 +14,7 @@ import {
 } from "@/lib/comancheria/engine";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ActionsPanel } from "@/components/comancheria/ActionsPanel";
 
 const TASK_LABEL: Record<PlayerTask, string> = {
   actions: "조치 수행",
@@ -32,9 +33,13 @@ const TASK_DESC: Record<PlayerTask, string> = {
 export function TurnFlow({
   gameState,
   setGameState,
+  selectedBandId,
+  setSelectedBandId,
 }: {
   gameState: GameState;
   setGameState: Dispatch<SetStateAction<GameState | null>>;
+  selectedBandId: string | null;
+  setSelectedBandId: (id: string | null) => void;
 }) {
   const [lastCupResult, setLastCupResult] = useState<string | null>(null);
   const [lastDie, setLastDie] = useState<number | null>(null);
@@ -153,14 +158,24 @@ export function TurnFlow({
           <p className="text-muted-foreground">
             {gameState.selectedTask ? TASK_DESC[gameState.selectedTask] : ""}
           </p>
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" onClick={handleDrawCup}>
-              Success Check 뽑기
-            </Button>
-            <Button size="sm" variant="outline" onClick={handleRollDie}>
-              주사위 굴리기
-            </Button>
-          </div>
+
+          {gameState.selectedTask === "actions" ? (
+            <ActionsPanel
+              gameState={gameState}
+              setGameState={setGameState}
+              selectedBandId={selectedBandId}
+              setSelectedBandId={setSelectedBandId}
+            />
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={handleDrawCup}>
+                Success Check 뽑기
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleRollDie}>
+                주사위 굴리기
+              </Button>
+            </div>
+          )}
           {lastCupResult && <p>드로우 결과: {lastCupResult}</p>}
           {lastDie !== null && <p>주사위 결과: {lastDie}</p>}
         </section>

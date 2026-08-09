@@ -1,13 +1,42 @@
 import { MAP_SPACES } from "./map-data";
 import { WAR_CARDS } from "./cards/war";
 
+export interface BandResources {
+  bison: number;
+  captives: number;
+  horses: number;
+  food: number;
+  tradeGoods: number;
+  guns: number;
+}
+
+export function emptyBandResources(): BandResources {
+  return { bison: 0, captives: 0, horses: 0, food: 0, tradeGoods: 0, guns: 0 };
+}
+
+/**
+ * A single Band counter. `mpMax` (4-6 on the physical counter) isn't in our
+ * source material, so newly created bands default to 6 MP — a simplification
+ * worth revisiting once the actual counter values are available.
+ */
+export interface BandInstance {
+  id: string;
+  strength: number;
+  mpMax: number;
+  mpRemaining: number;
+  status: "in-box" | "active" | "finished";
+  /** map space the band currently occupies; null while sitting in a rancheria's resource box */
+  spaceId: string | null;
+  resources: BandResources;
+  ownsMahimiana: boolean;
+}
+
 export interface RancheriaState {
   id: string; // "A".."E"
   spaceId: string;
   paraiboMedicine: number;
   mahimianaMedicine: number;
-  /** strengths of the band counters sitting in this rancheria's resource box */
-  bands: number[];
+  bands: BandInstance[];
   horses: number;
   hasMahimiana: boolean;
 }
@@ -60,6 +89,7 @@ export interface GameState {
   selectedTask: PlayerTask | null;
   warDeck: WarDeckState;
   log: string[];
+  selectedBandId: string | null;
 }
 
 const CIRCLE_SPACE_IDS = MAP_SPACES.filter((s) => s.type === "circle").map((s) => s.id);
@@ -109,7 +139,16 @@ export function createScenario92State(): GameState {
         spaceId: rancheriaSpace,
         paraiboMedicine: 2,
         mahimianaMedicine: 2,
-        bands: [2, 2, 2],
+        bands: [2, 2, 2].map((strength, i) => ({
+          id: `A-band-${i + 1}`,
+          strength,
+          mpMax: 6,
+          mpRemaining: 6,
+          status: "in-box" as const,
+          spaceId: null,
+          resources: emptyBandResources(),
+          ownsMahimiana: false,
+        })),
         horses: 4,
         hasMahimiana: true,
       },
@@ -143,5 +182,6 @@ export function createScenario92State(): GameState {
       warEventCardId: null,
     },
     log: ["시나리오 9.2 게임을 시작했습니다."],
+    selectedBandId: null,
   };
 }
