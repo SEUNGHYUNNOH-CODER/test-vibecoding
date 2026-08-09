@@ -2,7 +2,7 @@
 
 import type { Dispatch, SetStateAction } from "react";
 import type { BandInstance, GameState } from "@/lib/comancheria/game-state";
-import { activateRancheria, finishBand, huntAction, moveAction, raidAction, tradeAction } from "@/lib/comancheria/actions";
+import { activateOneBand, finishBand, huntAction, moveAction, raidAction, tradeAction } from "@/lib/comancheria/actions";
 import { getConnectedSpaces, getSpace } from "@/lib/comancheria/map-data";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,9 +47,13 @@ export function ActionsPanel({
       {boxRancherias.length > 0 && (
         <section className="space-y-1">
           <h4 className="font-medium">란체리아 활성화</h4>
+          <p className="text-xs text-muted-foreground">
+            밴드는 한 번에 하나씩 활성화됩니다 (규칙 4.1: 최소 1개, 원하는 만큼 반복 가능).
+          </p>
           {boxRancherias.map((r) => (
-            <Button key={r.id} size="sm" variant="outline" onClick={() => update((s) => activateRancheria(s, r.id))}>
-              란체리아 {r.id} 활성화 ({r.bands.filter((b) => b.status === "in-box").length}개 밴드, @{r.spaceId})
+            <Button key={r.id} size="sm" variant="outline" onClick={() => update((s) => activateOneBand(s, r.id))}>
+              란체리아 {r.id}에서 밴드 1개 활성화 (자원 상자 {r.bands.filter((b) => b.status === "in-box").length}개, @
+              {r.spaceId})
             </Button>
           ))}
         </section>
@@ -92,8 +96,11 @@ export function ActionsPanel({
             <Button size="sm" onClick={() => update((s) => huntAction(s, selectedBand.id))}>
               Hunt
             </Button>
-            <Button size="sm" onClick={() => update((s) => raidAction(s, selectedBand.id))}>
-              Raid
+            <Button size="sm" onClick={() => update((s) => raidAction(s, selectedBand.id, "horses"))}>
+              Raid (말 획득)
+            </Button>
+            <Button size="sm" onClick={() => update((s) => raidAction(s, selectedBand.id, "captives"))}>
+              Raid (포로 획득)
             </Button>
             {(["bison", "horses", "captives"] as const)
               .filter((res) => selectedBand.resources[res] > 0)
