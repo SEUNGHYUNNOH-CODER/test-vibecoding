@@ -14,6 +14,16 @@ function findBandRancheriaMahimianaMedicine(state: GameState, bandId: string): n
   return state.rancherias.find((r) => r.bands.some((b) => b.id === bandId))?.mahimianaMedicine;
 }
 
+/**
+ * Both Raid (5.2.3) and Trade (5.2.4, FAQ errata) require the target space
+ * to be an Enemy Space or a Peace Space. Peace Space state isn't modeled
+ * yet, so this approximates it as a tribe space or one of the enemy
+ * squares.
+ */
+function isEnemyOrPeaceTarget(state: GameState, spaceId: string): boolean {
+  return state.tribeSpaces.includes(spaceId) || spaceId.startsWith("ENEMY_");
+}
+
 function updateBand(state: GameState, bandId: string, fn: (b: BandInstance) => BandInstance): GameState {
   return {
     ...state,
@@ -162,8 +172,7 @@ export function raidAction(state: GameState, bandId: string, reward: RaidReward)
   const band = findBand(state, bandId);
   if (!band || !band.spaceId) return state;
   if (band.mpRemaining < 1) return withLog(state, "Raid 실패: MP 부족 (필요 1)");
-  const isValidTarget = state.tribeSpaces.includes(band.spaceId) || band.spaceId.startsWith("ENEMY_");
-  if (!isValidTarget) {
+  if (!isEnemyOrPeaceTarget(state, band.spaceId)) {
     return withLog(state, `Raid 실패: ${band.spaceId}는 적/평화 공간이 아닙니다`);
   }
   const mahimianaMedicine = band.ownsMahimiana ? findBandRancheriaMahimianaMedicine(state, bandId) : undefined;
@@ -188,10 +197,18 @@ export function raidAction(state: GameState, bandId: string, reward: RaidReward)
 
 export type TradeResource = "bison" | "horses" | "captives";
 
-/** 5.2.4 Trade — 1MP per resource spent; non-Captive resources also cost 1 AP. */
+/**
+ * 5.2.4 Trade — 1MP per resource spent; non-Captive resources also cost 1
+ * AP. Target space must be an Enemy Space or Peace Space (FAQ errata
+ * corrects the rulebook's original wording to this) — this was missing
+ * entirely before; approximated the same way as Raid's target check.
+ */
 export function tradeAction(state: GameState, bandId: string, resource: TradeResource): GameState {
   const band = findBand(state, bandId);
   if (!band || !band.spaceId) return state;
+  if (!isEnemyOrPeaceTarget(state, band.spaceId)) {
+    return withLog(state, `Trade 실패: ${band.spaceId}는 적/평화 공간이 아닙니다`);
+  }
   if (band.resources[resource] <= 0) return withLog(state, `Trade 실패: ${resource} 보유량 없음`);
   if (band.mpRemaining < 1) return withLog(state, "Trade 실패: MP 부족 (필요 1)");
   const gain: "tradeGoods" | "food" = resource === "captives" ? "tradeGoods" : "food";

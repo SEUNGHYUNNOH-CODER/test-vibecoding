@@ -15,10 +15,15 @@ export function emptyBandResources(): BandResources {
 }
 
 /**
- * A single Band counter. `mpMax` (4-6 on the physical counter) isn't in our
- * source material, so newly created bands default to 6 MP — a simplification
- * worth revisiting once the actual counter values are available.
+ * Band counter strength + MP always sum to 7 on the physical counters shown
+ * in the official playbook example (1-6, 2-5, 3-4), so MP is derived from
+ * strength rather than guessed.
  */
+export function bandMpForStrength(strength: number): number {
+  return 7 - strength;
+}
+
+/** A single Band counter. */
 export interface BandInstance {
   id: string;
   strength: number;
@@ -158,8 +163,8 @@ export function createScenario92State(): GameState {
         bands: [2, 2, 2].map((strength, i) => ({
           id: `A-band-${i + 1}`,
           strength,
-          mpMax: 6,
-          mpRemaining: 6,
+          mpMax: bandMpForStrength(strength),
+          mpRemaining: bandMpForStrength(strength),
           status: "in-box" as const,
           spaceId: null,
           resources: emptyBandResources(),
