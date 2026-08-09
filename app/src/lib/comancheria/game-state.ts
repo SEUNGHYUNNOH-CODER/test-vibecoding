@@ -105,6 +105,7 @@ export interface GameState {
   warColumns: WarColumnState[];
   log: string[];
   selectedBandId: string | null;
+  gameOver: "win" | "lose" | null;
 }
 
 const CIRCLE_SPACE_IDS = MAP_SPACES.filter((s) => s.type === "circle").map((s) => s.id);
@@ -199,5 +200,6 @@ export function createScenario92State(): GameState {
     warColumns: [],
     log: ["시나리오 9.2 게임을 시작했습니다."],
     selectedBandId: null,
+    gameOver: null,
   };
 }

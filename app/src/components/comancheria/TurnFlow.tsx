@@ -18,6 +18,7 @@ import { ActionsPanel } from "@/components/comancheria/ActionsPanel";
 import { CombatPanel } from "@/components/comancheria/CombatPanel";
 import { DevelopmentCardsPanel } from "@/components/comancheria/DevelopmentCardsPanel";
 import { CultureCardsPanel } from "@/components/comancheria/CultureCardsPanel";
+import { VictoryPanel } from "@/components/comancheria/VictoryPanel";
 
 const TASK_LABEL: Record<PlayerTask, string> = {
   actions: "조치 수행",
@@ -175,7 +176,10 @@ export function TurnFlow({
             <DevelopmentCardsPanel gameState={gameState} setGameState={setGameState} />
           )}
           {gameState.selectedTask === "passage-of-time" && (
-            <CultureCardsPanel gameState={gameState} setGameState={setGameState} />
+            <>
+              <VictoryPanel gameState={gameState} setGameState={setGameState} />
+              <CultureCardsPanel gameState={gameState} setGameState={setGameState} />
+            </>
           )}
           {(gameState.selectedTask === "culture" || gameState.selectedTask === null) && (
             <div className="flex flex-wrap gap-2">
