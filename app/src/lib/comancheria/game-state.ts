@@ -74,6 +74,20 @@ export interface WarDeckState {
   warEventCardId: string | null;
 }
 
+/**
+ * An enemy War Column on the map. The physical counter's printed Battle DRM
+ * isn't in our source material, so it's entered by hand when the column is
+ * placed (default 0) — see the note on `combatDrm`.
+ */
+export interface WarColumnState {
+  id: string;
+  enemy: "north" | "south" | "east" | "west";
+  strength: number;
+  /** printed Battle DRM on the physical War Column counter; user-entered, default 0 */
+  combatDrm: number;
+  spaceId: string;
+}
+
 export interface GameState {
   scenarioId: string;
   tribeSpaces: string[];
@@ -88,6 +102,7 @@ export interface GameState {
   phase: GamePhase;
   selectedTask: PlayerTask | null;
   warDeck: WarDeckState;
+  warColumns: WarColumnState[];
   log: string[];
   selectedBandId: string | null;
 }
@@ -181,6 +196,7 @@ export function createScenario92State(): GameState {
       discardPile: [],
       warEventCardId: null,
     },
+    warColumns: [],
     log: ["시나리오 9.2 게임을 시작했습니다."],
     selectedBandId: null,
   };

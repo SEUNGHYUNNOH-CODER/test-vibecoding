@@ -233,6 +233,34 @@ export function GameMap({
                 );
               })}
 
+              {gameState?.warColumns.map((wc) => {
+                const s = byId[wc.spaceId];
+                if (!s) return null;
+                return (
+                  <g key={`wc-${wc.id}`} style={{ pointerEvents: "none" }}>
+                    <rect
+                      x={s.x - 1.3}
+                      y={s.y - 3.6}
+                      width={2.6}
+                      height={2}
+                      fill="#a1272f"
+                      stroke="#2a2118"
+                      strokeWidth={0.12}
+                    />
+                    <text
+                      x={s.x}
+                      y={s.y - 2.15}
+                      textAnchor="middle"
+                      fontSize={1.5}
+                      fill="#fff"
+                      fontWeight={700}
+                    >
+                      {wc.strength}
+                    </text>
+                  </g>
+                );
+              })}
+
               {gameState &&
                 (() => {
                   const bySpace: Record<string, typeof gameState.rancherias[number]["bands"]> = {};

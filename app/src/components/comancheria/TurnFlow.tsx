@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ActionsPanel } from "@/components/comancheria/ActionsPanel";
+import { CombatPanel } from "@/components/comancheria/CombatPanel";
 
 const TASK_LABEL: Record<PlayerTask, string> = {
   actions: "조치 수행",
@@ -133,6 +134,7 @@ export function TurnFlow({
               <p className="mt-1">{warEventCard.effectKo}</p>
             </div>
           )}
+          <CombatPanel gameState={gameState} setGameState={setGameState} />
         </section>
       )}
 
