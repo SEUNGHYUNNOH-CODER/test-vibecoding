@@ -2,7 +2,16 @@
 
 import type { Dispatch, SetStateAction } from "react";
 import type { BandInstance, GameState } from "@/lib/comancheria/game-state";
-import { activateOneBand, finishBand, huntAction, moveAction, raidAction, tradeAction } from "@/lib/comancheria/actions";
+import {
+  activateOneBand,
+  claimMahimiana,
+  finishBand,
+  huntAction,
+  moveAction,
+  raidAction,
+  releaseMahimiana,
+  tradeAction,
+} from "@/lib/comancheria/actions";
 import { getConnectedSpaces, getSpace } from "@/lib/comancheria/map-data";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +50,15 @@ export function ActionsPanel({
   const allBands = gameState.rancherias.flatMap((r) => r.bands.map((b) => ({ ...b, rancheriaId: r.id })));
   const selectedBand = allBands.find((b) => b.id === selectedBandId) ?? null;
   const boxRancherias = gameState.rancherias.filter((r) => r.bands.some((b) => b.status === "in-box"));
+  const selectedBandRancheria = selectedBand
+    ? gameState.rancherias.find((r) => r.id === selectedBand.rancheriaId)
+    : null;
+  const canClaimMahimiana =
+    selectedBand &&
+    selectedBandRancheria &&
+    selectedBandRancheria.hasMahimiana &&
+    !selectedBandRancheria.bands.some((b) => b.ownsMahimiana) &&
+    selectedBand.spaceId === selectedBandRancheria.spaceId;
 
   return (
     <div className="space-y-3 text-sm">
@@ -80,6 +98,7 @@ export function ActionsPanel({
                   </span>
                 )}
                 {b.spaceId && <span>@ {b.spaceId}</span>}
+                {b.ownsMahimiana && <Badge variant="secondary">마히미아나</Badge>}
               </div>
               <p className="mt-0.5 text-xs text-muted-foreground">보유 자원: {resourceSummary(b)}</p>
             </button>
@@ -112,6 +131,16 @@ export function ActionsPanel({
             <Button size="sm" variant="outline" onClick={() => update((s) => finishBand(s, selectedBand.id))}>
               완료 처리
             </Button>
+            {canClaimMahimiana && (
+              <Button size="sm" variant="secondary" onClick={() => update((s) => claimMahimiana(s, selectedBand.id))}>
+                마히미아나 인수
+              </Button>
+            )}
+            {selectedBand.ownsMahimiana && (
+              <Button size="sm" variant="outline" onClick={() => update((s) => releaseMahimiana(s, selectedBand.id))}>
+                마히미아나 반환
+              </Button>
+            )}
           </div>
           <div>
             <p className="text-xs text-muted-foreground">이동 (인접 공간 탭):</p>

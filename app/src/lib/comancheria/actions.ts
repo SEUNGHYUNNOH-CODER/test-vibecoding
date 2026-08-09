@@ -1,6 +1,6 @@
 import type { BandInstance, DrawCupState, GameState } from "./game-state";
 import { getConnectedSpaces } from "./map-data";
-import { drawFromCup, withLog } from "./engine";
+import { drawFromCup, rollDie, withLog } from "./engine";
 
 function findBand(state: GameState, bandId: string): BandInstance | undefined {
   for (const r of state.rancherias) {
@@ -8,6 +8,10 @@ function findBand(state: GameState, bandId: string): BandInstance | undefined {
     if (b) return b;
   }
   return undefined;
+}
+
+function findBandRancheriaMahimianaMedicine(state: GameState, bandId: string): number | undefined {
+  return state.rancherias.find((r) => r.bands.some((b) => b.id === bandId))?.mahimianaMedicine;
 }
 
 function updateBand(state: GameState, bandId: string, fn: (b: BandInstance) => BandInstance): GameState {
@@ -49,6 +53,33 @@ export function activateOneBand(state: GameState, rancheriaId: string): GameStat
   );
 }
 
+/**
+ * 4.1.1.A: an active band at its own rancheria's space can pick up the
+ * rancheria's unowned Mahimiana counter (only one band may own it at a
+ * time — the Mahimiana can wander off with that band per the rules).
+ */
+export function claimMahimiana(state: GameState, bandId: string): GameState {
+  const rancheria = state.rancherias.find((r) => r.bands.some((b) => b.id === bandId));
+  const band = rancheria?.bands.find((b) => b.id === bandId);
+  if (!rancheria || !band) return state;
+  if (band.spaceId !== rancheria.spaceId) {
+    return withLog(state, "마히미아나 인수 실패: 밴드가 란체리아와 같은 공간에 있어야 합니다");
+  }
+  if (!rancheria.hasMahimiana) {
+    return withLog(state, "마히미아나 인수 실패: 이 란체리아는 마히미아나를 보유하고 있지 않습니다");
+  }
+  if (rancheria.bands.some((b) => b.ownsMahimiana)) {
+    return withLog(state, "마히미아나 인수 실패: 이미 다른 밴드가 소유 중입니다");
+  }
+  const s2 = updateBand(state, bandId, (b) => ({ ...b, ownsMahimiana: true }));
+  return withLog(s2, `밴드가 마히미아나를 인수했습니다 (의약 등급 ${rancheria.mahimianaMedicine})`);
+}
+
+export function releaseMahimiana(state: GameState, bandId: string): GameState {
+  const s2 = updateBand(state, bandId, (b) => ({ ...b, ownsMahimiana: false }));
+  return withLog(s2, "밴드가 마히미아나를 반환했습니다");
+}
+
 export function finishBand(state: GameState, bandId: string): GameState {
   const s2 = updateBand(state, bandId, (b) => ({ ...b, status: "finished", mpRemaining: 0 }));
   return withLog(s2, `밴드 완료 처리`);
@@ -86,20 +117,34 @@ export function moveAction(state: GameState, bandId: string, targetSpaceId: stri
   return withLog(s2, `밴드 이동: ${band.spaceId} → ${targetSpaceId} (MP -${cost})`);
 }
 
+/**
+ * 2.9.2 — draws counters equal to the active band's strength. A band that
+ * owns a Mahimiana rolls a bonus die: result <= half the Mahimiana's
+ * medicine (rounded down) draws 2 bonus counters, result <= full medicine
+ * draws 1, otherwise 0 (2.9.2 step 1 / Player Aid).
+ */
 export function successCheck(
   cup: DrawCupState,
-  count: number,
-): { successes: number; cup: DrawCupState; enemyApGained: number } {
+  bandStrength: number,
+  mahimianaMedicine?: number,
+): { successes: number; cup: DrawCupState; enemyApGained: number; bonusDraws: number } {
+  let bonusDraws = 0;
+  if (mahimianaMedicine !== undefined) {
+    const roll = rollDie();
+    if (roll <= Math.floor(mahimianaMedicine / 2)) bonusDraws = 2;
+    else if (roll <= mahimianaMedicine) bonusDraws = 1;
+  }
+
   let currentCup = cup;
   let successes = 0;
   let enemyApGained = 0;
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < bandStrength + bonusDraws; i++) {
     const { result, cup: newCup } = drawFromCup(currentCup);
     currentCup = newCup;
     if (result.kind === "success") successes++;
     else enemyApGained += result.value;
   }
-  return { successes, cup: currentCup, enemyApGained };
+  return { successes, cup: currentCup, enemyApGained, bonusDraws };
 }
 
 export type RaidReward = "horses" | "captives";
@@ -121,7 +166,8 @@ export function raidAction(state: GameState, bandId: string, reward: RaidReward)
   if (!isValidTarget) {
     return withLog(state, `Raid 실패: ${band.spaceId}는 적/평화 공간이 아닙니다`);
   }
-  const { successes, cup, enemyApGained } = successCheck(state.drawCup, band.strength);
+  const mahimianaMedicine = band.ownsMahimiana ? findBandRancheriaMahimianaMedicine(state, bandId) : undefined;
+  const { successes, cup, enemyApGained, bonusDraws } = successCheck(state.drawCup, band.strength, mahimianaMedicine);
   let s2: GameState = {
     ...state,
     drawCup: cup,
@@ -133,9 +179,10 @@ export function raidAction(state: GameState, bandId: string, reward: RaidReward)
     resources: { ...b.resources, [reward]: b.resources[reward] + successes },
   }));
   const rewardKo = reward === "horses" ? "말" : "포로";
+  const bonusText = bonusDraws > 0 ? ` (마히미아나 보너스 드로우 +${bonusDraws})` : "";
   return withLog(
     s2,
-    `Raid (강도 ${band.strength}만큼 드로우): Success ${successes}개 → ${rewardKo} +${successes}, 적 AP +${enemyApGained}`,
+    `Raid (강도 ${band.strength}${bonusText}만큼 드로우): Success ${successes}개 → ${rewardKo} +${successes}, 적 AP +${enemyApGained}`,
   );
 }
 
