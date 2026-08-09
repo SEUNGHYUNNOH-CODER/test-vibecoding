@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { GameMap } from "@/components/comancheria/GameMap";
 import { GameStatusPanel } from "@/components/comancheria/GameStatusPanel";
+import { TurnFlow } from "@/components/comancheria/TurnFlow";
 import { createScenario92State, type GameState } from "@/lib/comancheria/game-state";
 import { Button } from "@/components/ui/button";
 
@@ -22,10 +23,17 @@ export default function ComancheriaPage() {
           <span className="text-xs text-muted-foreground">시나리오 {gameState.scenarioId}</span>
         )}
       </header>
-      <main className="min-h-0 flex-1">
+      <main className="min-h-0 flex-[3]">
         <GameMap gameState={gameState} />
       </main>
-      {gameState && <GameStatusPanel gameState={gameState} />}
+      {gameState && (
+        <>
+          <GameStatusPanel gameState={gameState} />
+          <div className="min-h-0 flex-[2] overflow-y-auto border-t">
+            <TurnFlow gameState={gameState} setGameState={setGameState} />
+          </div>
+        </>
+      )}
     </div>
   );
 }

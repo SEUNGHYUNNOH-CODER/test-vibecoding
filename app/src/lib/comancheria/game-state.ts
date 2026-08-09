@@ -1,4 +1,5 @@
 import { MAP_SPACES } from "./map-data";
+import { WAR_CARDS } from "./cards/war";
 
 export interface RancheriaState {
   id: string; // "A".."E"
@@ -34,6 +35,16 @@ export interface GeneralRecordState {
   enemyAP: number;
 }
 
+export type GamePhase = "war-column" | "task-selection" | "task-execution" | "cleanup";
+
+export type PlayerTask = "actions" | "culture" | "planning" | "passage-of-time";
+
+export interface WarDeckState {
+  drawPile: string[]; // WarCard ids
+  discardPile: string[];
+  warEventCardId: string | null;
+}
+
 export interface GameState {
   scenarioId: string;
   tribeSpaces: string[];
@@ -45,6 +56,10 @@ export interface GameState {
   acquiredCultureCards: string[];
   historyCardId: string;
   drawCup: DrawCupState;
+  phase: GamePhase;
+  selectedTask: PlayerTask | null;
+  warDeck: WarDeckState;
+  log: string[];
 }
 
 const CIRCLE_SPACE_IDS = MAP_SPACES.filter((s) => s.type === "circle").map((s) => s.id);
@@ -120,5 +135,13 @@ export function createScenario92State(): GameState {
       enemyAp3: 4,
       enemyAp4: 5,
     },
+    phase: "war-column",
+    selectedTask: null,
+    warDeck: {
+      drawPile: shuffle(WAR_CARDS.map((c) => c.id)),
+      discardPile: [],
+      warEventCardId: null,
+    },
+    log: ["시나리오 9.2 게임을 시작했습니다."],
   };
 }
