@@ -11,15 +11,15 @@ import type { MapConnection, MapSpace } from "./types";
  */
 export const MAP_SPACES: MapSpace[] = [
   // Upper Arkansas
-  { id: "UA1", territory: "upper-arkansas", type: "circle", areaValue: 1, label: "Upper Arkansas #1", x: 18.3, y: 29.6 },
-  { id: "UA2", territory: "upper-arkansas", type: "circle", areaValue: 2, label: "Upper Arkansas #2", x: 27.5, y: 30.6 },
-  { id: "UA3", territory: "upper-arkansas", type: "circle", areaValue: 3, label: "Upper Arkansas #3", x: 24.5, y: 41.7 },
-  { id: "UA4", territory: "upper-arkansas", type: "circle", areaValue: 4, label: "Upper Arkansas #4", x: 31.0, y: 39.6 },
-  { id: "UA5", territory: "upper-arkansas", type: "circle", areaValue: 5, label: "Upper Arkansas #5", x: 36.3, y: 34.0 },
-  { id: "UA6", territory: "upper-arkansas", type: "circle", areaValue: 6, label: "Upper Arkansas #6", x: 42.5, y: 31.0 },
+  { id: "UA1", territory: "upper-arkansas", type: "circle", areaValue: 1, label: "Upper Arkansas #1", x: 17.7, y: 28.6 },
+  { id: "UA2", territory: "upper-arkansas", type: "circle", areaValue: 2, label: "Upper Arkansas #2", x: 27.5, y: 30.4 },
+  { id: "UA3", territory: "upper-arkansas", type: "circle", areaValue: 3, label: "Upper Arkansas #3", x: 24.2, y: 39.4 },
+  { id: "UA4", territory: "upper-arkansas", type: "circle", areaValue: 4, label: "Upper Arkansas #4", x: 30.3, y: 38.9 },
+  { id: "UA5", territory: "upper-arkansas", type: "circle", areaValue: 5, label: "Upper Arkansas #5", x: 36.2, y: 33.5 },
+  { id: "UA6", territory: "upper-arkansas", type: "circle", areaValue: 6, label: "Upper Arkansas #6", x: 42.6, y: 31.3 },
 
   // Llano Estacado
-  { id: "LE1", territory: "llano-estacado", type: "circle", areaValue: 1, label: "Llano Estacado #1", x: 18.5, y: 41.2 },
+  { id: "LE1", territory: "llano-estacado", type: "circle", areaValue: 1, label: "Llano Estacado #1", x: 17.7, y: 39.9 },
   { id: "LE2", territory: "llano-estacado", type: "circle", areaValue: 2, label: "Llano Estacado #2", x: 17.3, y: 57.4 },
   { id: "LE3", territory: "llano-estacado", type: "circle", areaValue: 3, label: "Llano Estacado #3", x: 22.0, y: 50.5 },
   { id: "LE4", territory: "llano-estacado", type: "circle", areaValue: 4, label: "Llano Estacado #4", x: 20.0, y: 68.0 },
@@ -32,12 +32,12 @@ export const MAP_SPACES: MapSpace[] = [
   { id: "RR3", territory: "red-river", type: "circle", areaValue: 3, label: "Red River #3", x: 52.0, y: 60.2 },
   { id: "RR4", territory: "red-river", type: "circle", areaValue: 4, label: "Red River #4", x: 45.0, y: 59.7 },
   { id: "RR5", territory: "red-river", type: "circle", areaValue: 5, label: "Red River #5", x: 38.5, y: 54.1 },
-  { id: "RR6", territory: "red-river", type: "circle", areaValue: 6, label: "Red River #6", x: 34.3, y: 46.3 },
+  { id: "RR6", territory: "red-river", type: "circle", areaValue: 6, label: "Red River #6", x: 34.5, y: 44.8 },
 
   // Lower Arkansas
-  { id: "LA1", territory: "lower-arkansas", type: "circle", areaValue: 1, label: "Lower Arkansas #1", x: 62.3, y: 61.3 },
-  { id: "LA2", territory: "lower-arkansas", type: "circle", areaValue: 2, label: "Lower Arkansas #2", x: 61.5, y: 51.2 },
-  { id: "LA3", territory: "lower-arkansas", type: "circle", areaValue: 3, label: "Lower Arkansas #3", x: 52.5, y: 48.1 },
+  { id: "LA1", territory: "lower-arkansas", type: "circle", areaValue: 1, label: "Lower Arkansas #1", x: 59.5, y: 60.5 },
+  { id: "LA2", territory: "lower-arkansas", type: "circle", areaValue: 2, label: "Lower Arkansas #2", x: 59.5, y: 51.8 },
+  { id: "LA3", territory: "lower-arkansas", type: "circle", areaValue: 3, label: "Lower Arkansas #3", x: 52.7, y: 49.5 },
   { id: "LA4", territory: "lower-arkansas", type: "circle", areaValue: 4, label: "Lower Arkansas #4", x: 47.7, y: 47.1 },
   { id: "LA5", territory: "lower-arkansas", type: "circle", areaValue: 5, label: "Lower Arkansas #5", x: 39.7, y: 45.8 },
   { id: "LA6", territory: "lower-arkansas", type: "circle", areaValue: 6, label: "Lower Arkansas #6", x: 44.8, y: 37.8 },
@@ -60,9 +60,11 @@ export const MAP_SPACES: MapSpace[] = [
 
   // Special spaces
   { id: "PALO_DURO", territory: null, type: "hex", areaValue: null, label: "Palo Duro Canyon", x: 28.8, y: 56.9 },
-  { id: "RESERVATION", territory: null, type: "reservation", areaValue: null, label: "The Reservation", x: 53.0, y: 36.6 },
-  { id: "ENEMY_WEST", territory: null, type: "square", areaValue: null, label: "West Enemy Space", x: 43.2, y: 22.1 },
+  { id: "RESERVATION", territory: null, type: "reservation", areaValue: null, label: "The Reservation", x: 55.0, y: 36.6 },
+  { id: "ENEMY_WEST", territory: null, type: "square", areaValue: null, label: "West Enemy Space", x: 42.5, y: 22.9 },
   { id: "ENEMY_SOUTH", territory: null, type: "square", areaValue: null, label: "South Enemy Space", x: 64.7, y: 55.4 },
+  // TODO: not yet verified against the board photo (not needed for scenario
+  // 9.2, which only uses West + South colonial enemies) — placeholder only.
   { id: "ENEMY_EAST_1", territory: null, type: "square", areaValue: null, label: "East Enemy Space #1", x: 78.0, y: 60.0 },
   { id: "ENEMY_EAST_2", territory: null, type: "square", areaValue: null, label: "East Enemy Space #2", x: 64.0, y: 74.0 },
 ];

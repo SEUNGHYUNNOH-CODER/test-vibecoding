@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { MAP_CONNECTIONS, MAP_SPACES } from "@/lib/comancheria/map-data";
 import type { MapSpace } from "@/lib/comancheria/types";
+import type { GameState } from "@/lib/comancheria/game-state";
 import {
   Dialog,
   DialogContent,
@@ -35,7 +36,7 @@ function spaceColor(space: MapSpace) {
   return "#e7e2d6"; // hex (Palo Duro)
 }
 
-export function GameMap() {
+export function GameMap({ gameState }: { gameState?: GameState | null }) {
   const [selected, setSelected] = useState<MapSpace | null>(null);
   const [scale, setScale] = useState(1);
   const [pos, setPos] = useState({ x: 0, y: 0 });
@@ -160,6 +161,66 @@ export function GameMap() {
                   )}
                 </g>
               ))}
+
+              {gameState?.bisonSpaces.map((id) => {
+                const s = byId[id];
+                if (!s) return null;
+                return (
+                  <rect
+                    key={`bison-${id}`}
+                    x={s.x - 0.7}
+                    y={s.y - 0.7}
+                    width={1.4}
+                    height={1.4}
+                    fill="#6b4226"
+                    stroke="#2a2118"
+                    strokeWidth={0.1}
+                    style={{ pointerEvents: "none" }}
+                  />
+                );
+              })}
+
+              {gameState?.tribeSpaces.map((id) => {
+                const s = byId[id];
+                if (!s) return null;
+                return (
+                  <polygon
+                    key={`tribe-${id}`}
+                    points={`${s.x},${s.y - 1.4} ${s.x + 1.2},${s.y + 1} ${s.x - 1.2},${s.y + 1}`}
+                    fill="#111"
+                    stroke="#fff"
+                    strokeWidth={0.12}
+                    style={{ pointerEvents: "none" }}
+                  />
+                );
+              })}
+
+              {gameState?.rancherias.map((r) => {
+                const s = byId[r.spaceId];
+                if (!s) return null;
+                return (
+                  <g key={`ranch-${r.id}`} style={{ pointerEvents: "none" }}>
+                    <circle
+                      cx={s.x}
+                      cy={s.y}
+                      r={2.9}
+                      fill="none"
+                      stroke="#e6b800"
+                      strokeWidth={0.35}
+                    />
+                    <text
+                      x={s.x}
+                      y={s.y - 2.6}
+                      textAnchor="middle"
+                      fontSize={1.8}
+                      fill="#e6b800"
+                      fontWeight={700}
+                    >
+                      란체리아 {r.id}
+                    </text>
+                  </g>
+                );
+              })}
             </svg>
           </div>
         </div>
@@ -185,6 +246,23 @@ export function GameMap() {
               <p className="text-sm text-muted-foreground">
                 공간 ID: <code>{selected.id}</code>
               </p>
+              {gameState && (
+                <div className="flex flex-wrap gap-1.5">
+                  {gameState.tribeSpaces.includes(selected.id) && (
+                    <Badge variant="destructive">부족 (Tribe)</Badge>
+                  )}
+                  {gameState.bisonSpaces.includes(selected.id) && (
+                    <Badge variant="outline">들소 (Bison)</Badge>
+                  )}
+                  {gameState.rancherias
+                    .filter((r) => r.spaceId === selected.id)
+                    .map((r) => (
+                      <Badge key={r.id} variant="secondary">
+                        란체리아 {r.id}
+                      </Badge>
+                    ))}
+                </div>
+              )}
             </>
           )}
         </DialogContent>
