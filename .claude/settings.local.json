@@ -5,7 +5,8 @@
       "PowerShell(npm install -g pnpm 2>&1)",
       "PowerShell(\"---installing pnpm---\")",
       "PowerShell($env:Path = \"$env:APPDATA\\\\npm;$env:Path\"; pnpm --version)",
-      "PowerShell($env:Path = \"$env:APPDATA\\\\npm;$env:Path\"; Set-Location app; pnpm install 2>&1 | Select-Object -Last 15)"
+      "PowerShell($env:Path = \"$env:APPDATA\\\\npm;$env:Path\"; Set-Location app; pnpm install 2>&1 | Select-Object -Last 15)",
+      "Bash(mkdir -p /home/user/test-vibecoding/app/public/comancheria && cp /root/.claude/uploads/bbb25f5b-5f5f-5e48-b0c0-3af5f33bf13c/b66c5c76-1000024941.jpg /home/user/test-vibecoding/app/public/comancheria/map.jpg && ls -la /home/user/test-vibecoding/app/public/comancheria/)"
     ]
   }
 }

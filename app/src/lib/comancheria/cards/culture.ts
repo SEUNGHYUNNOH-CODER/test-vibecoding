@@ -1,0 +1,238 @@
+import type { CultureCard } from "../types";
+
+/**
+ * Full 24-card culture deck (8 tracks × 3 levels). Source: French fan
+ * translation PDF supplied by the user (Champalaune Christophe).
+ */
+export const CULTURE_CARDS: CultureCard[] = [
+  {
+    id: "C1",
+    set: "Horsemanship",
+    setKo: "기마술",
+    level: 1,
+    cost: 1,
+    requiresKo: "없음",
+    effectKo: "Horses 카운터를 보유한 코만치 밴드는 전투 수정치(DRM) +1.",
+  },
+  {
+    id: "C2",
+    set: "Horsemanship",
+    setKo: "기마술",
+    level: 2,
+    cost: 2,
+    requiresKo: "기마술 레벨 1",
+    effectKo:
+      "액션: 사육 — Take Actions 작전 중, 아직 MP를 쓰지 않은 미완료 밴드를 완료 처리하고, Operations Track에서 Horses 카운터가 없는 공간에 Horses 카운터 1개를 배치한다.",
+  },
+  {
+    id: "C3",
+    set: "Horsemanship",
+    setKo: "기마술",
+    level: 3,
+    cost: 3,
+    requiresKo: "기마술 레벨 2",
+    effectKo: "Horses 카운터를 보유한 코만치 밴드는 MP +2 (예: 강도1·MP6 밴드는 MP8이 된다).",
+  },
+  {
+    id: "C4",
+    set: "Lords of the Plains",
+    setKo: "평원의 지배자",
+    level: 1,
+    cost: 1,
+    requiresKo: "없음",
+    effectKo:
+      "War Column Phase 2단계 중, War Column과 같은 공간에 홀로 있는 밴드는 탈출을 시도할 수 있다: 주사위를 굴려 밴드 강도보다 크면 인접 공간으로 이동한다.",
+  },
+  {
+    id: "C5",
+    set: "Warfare",
+    setKo: "전쟁술",
+    level: 1,
+    cost: 1,
+    requiresKo: "없음",
+    effectKo:
+      "액션: 전쟁의 길 — Take Actions 작전 중, 부족/정착지와 같은 공간의 활성 밴드가 강도만큼 MP를 소비하고 Success Check을 수행한다. Success마다 같은 공간의 부족/정착지에 황폐화 카운터를 배치한다. (FAQ: 종료 시 Raid 5.2.3의 4단계도 함께 수행)",
+  },
+  {
+    id: "C6",
+    set: "Warfare",
+    setKo: "전쟁술",
+    level: 2,
+    cost: 2,
+    requiresKo: "전쟁술 레벨 1",
+    effectKo: "Raid 또는 Warfare 액션에서 Success Check 시, 미리 선언하면 드로우 컵에서 카운터를 하나 더 뽑을 수 있다.",
+  },
+  {
+    id: "C7",
+    set: "Warfare",
+    setKo: "전쟁술",
+    level: 3,
+    cost: 3,
+    requiresKo: "전쟁술 레벨 2",
+    effectKo:
+      "Success가 하나 이상 뽑힌 Raid/Warpath 액션에서, Raid 3단계(또는 Warpath 해결)에 목표에 황폐화 카운터를 보너스로 하나 더 배치할 수 있다.",
+  },
+  {
+    id: "C8",
+    set: "Lords of the Plains",
+    setKo: "평원의 지배자",
+    level: 2,
+    cost: 2,
+    requiresKo: "평원의 지배자 레벨 1",
+    effectKo:
+      "액션: 습격 — War Column과 같은 공간(적 공간 제외)에서 2MP를 소비해 War Column 강도를 1 줄이거나(0이 되면 전쟁 종료), '?' 공간에서 2MP를 소비해 카운터를 공개한다: Success면 드로우 컵으로, Enemy AP면 Enemy AP 구역으로.",
+  },
+  {
+    id: "C9",
+    set: "Trade",
+    setKo: "교역",
+    level: 1,
+    cost: 1,
+    requiresKo: "없음",
+    effectKo: "Trade 액션 중, 동쪽 적 공간이나 평화 공간에서 부족과 거래하여 Guns를 획득할 수 있다.",
+  },
+  {
+    id: "C10",
+    set: "Trade",
+    setKo: "교역",
+    level: 2,
+    cost: 2,
+    requiresKo: "교역 레벨 1",
+    effectKo:
+      "교역 축제 — Planning 작전 시작 시, 각 란체리아에서 Bison/Horses/Captives 하나를 소비해 Trade Goods 카운터를 스톡에서 가져와 같은 란체리아에 놓을 수 있다.",
+  },
+  {
+    id: "C11",
+    set: "Trade",
+    setKo: "교역",
+    level: 3,
+    cost: 3,
+    requiresKo: "교역 레벨 2",
+    effectKo: "평화 공간에서 Trade 액션을 수행할 때마다 문화 점수 1점을 얻는다.",
+  },
+  {
+    id: "C12",
+    set: "Lords of the Plains",
+    setKo: "평원의 지배자",
+    level: 3,
+    cost: 3,
+    requiresKo: "평원의 지배자 레벨 2",
+    effectKo:
+      "War Column Phase 2단계 중, War Column과 같은 공간의 란체리아는 탈출을 시도할 수 있다: 주사위 결과가 란체리아 밴드 총 강도보다 크면 적재 한도 내에서 인접 공간으로 이동한다.",
+  },
+  {
+    id: "C13",
+    set: "Diplomacy",
+    setKo: "외교",
+    level: 1,
+    cost: 1,
+    requiresKo: "없음",
+    effectKo: "효과 없음 (상위 레벨의 전제 조건).",
+  },
+  {
+    id: "C14",
+    set: "Diplomacy",
+    setKo: "외교",
+    level: 2,
+    cost: 2,
+    requiresKo: "외교 레벨 1",
+    effectKo: "Headman Action — Planning 중, Enemy Instruction Display 아무 열이나 맨 위 지시 카운터를 뒤집는다.",
+  },
+  {
+    id: "C15",
+    set: "Diplomacy",
+    setKo: "외교",
+    level: 3,
+    cost: 3,
+    requiresKo: "외교 레벨 2",
+    effectKo:
+      "Headman Action — Planning 중, Enemy Instruction Display에서 Peace 또는 Ally 지시 하나를 제거하고 규칙 6.3.1(Ally) 또는 6.3.5(Peace)에 따라 배치한다. War Column이 있는 적에게 Peace를 배치하면 6.3.5 2단계를 적용하고, 전쟁이 끝나면 Enemy Instruction Display를 재설정한다.",
+  },
+  {
+    id: "C16",
+    set: "Politics",
+    setKo: "정치",
+    level: 1,
+    cost: 1,
+    requiresKo: "없음",
+    effectKo:
+      "Planning 7단계 중, 동맹 부족 하나를 인접 공간(점선 연결 제외)으로 적재 한도 내에서 이동시킬 수 있다. 도착 공간의 Bison은 제거한다.",
+  },
+  {
+    id: "C17",
+    set: "Spirituality",
+    setKo: "영성",
+    level: 1,
+    cost: 1,
+    requiresKo: "없음",
+    effectKo: "새 헤드맨의 의약 등급을 정할 때, 주사위 2개를 굴려 더 높은 결과를 적용한다.",
+  },
+  {
+    id: "C18",
+    set: "Spirituality",
+    setKo: "영성",
+    level: 2,
+    cost: 2,
+    requiresKo: "영성 레벨 1",
+    effectKo:
+      "Headman Action — Planning 중 주사위를 굴려 현재 의약 등급보다 크면 활성 파라이보의 의약 등급 +1. 같은 파라이보는 해당 Planning 작전에서 이 액션을 다시 시도할 수 없다.",
+  },
+  {
+    id: "C19",
+    set: "Spirituality",
+    setKo: "영성",
+    level: 3,
+    cost: 3,
+    requiresKo: "영성 레벨 2",
+    effectKo: "파라이보가 2개 이상의 Headman Action을 시도할 때, 주사위 2개를 굴려 더 좋은 결과를 선택한다.",
+  },
+  {
+    id: "C20",
+    set: "Politics",
+    setKo: "정치",
+    level: 2,
+    cost: 2,
+    requiresKo: "정치 레벨 1",
+    effectKo:
+      "Headman Action — Planning 중, 동맹 부족을 스톡으로 제거(Enemy Instruction Display 해당 열의 맨 아래 빈 공간에 Ally 지시를 뒤집어 반환)하고, 강도 2 밴드로 교체할 수 있다.",
+  },
+  {
+    id: "C21",
+    set: "Tactics",
+    setKo: "전술",
+    level: 1,
+    cost: 1,
+    requiresKo: "없음",
+    effectKo: "부족 또는 정착지에 4번째 황폐화 카운터가 배치되는 즉시 그 부족/정착지를 게임에서 제거한다.",
+  },
+  {
+    id: "C22",
+    set: "Tactics",
+    setKo: "전술",
+    level: 2,
+    cost: 2,
+    requiresKo: "전술 레벨 1",
+    effectKo:
+      "액션: 정찰 — War Column과 같은 공간에서 1MP를 소비해 War 덱 맨 위 카드를 확인한 뒤 다시 맨 위에 놓는다.",
+  },
+  {
+    id: "C23",
+    set: "Tactics",
+    setKo: "전술",
+    level: 3,
+    cost: 3,
+    requiresKo: "전술 레벨 2",
+    effectKo:
+      "'?' 카운터에 대한 Raid 액션을 일반 절차(5.2.3) 대신, 1MP만 소비하고 뒷면을 보지 않은 채 '?'를 드로우 컵으로 되돌리는 방식으로 수행할 수 있다.",
+  },
+  {
+    id: "C24",
+    set: "Politics",
+    setKo: "정치",
+    level: 3,
+    cost: 3,
+    requiresKo: "정치 레벨 2",
+    effectKo:
+      "현재 역사 카드의 Enemy Action Table 주사위를 굴리기 전 문화 점수 1점을 소비하면, 주사위 대신 어떤 적이 활성화될지 직접 선택할 수 있다(역사 카드에 명시된 적 중에서만).",
+  },
+];
