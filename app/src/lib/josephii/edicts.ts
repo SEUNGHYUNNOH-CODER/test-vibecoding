@@ -185,6 +185,24 @@ export const EDICT_BY_ID: Record<string, Edict> = Object.fromEntries(
 /** §2.5 적대 전환 — 이 칙령이 관철되면 도시성 보정이 절반으로 줄어든다 */
 export const URBANITY_PENALTY_EDICT = "city-admin";
 
+/**
+ * §12.2 역사 타임라인 순서 — 요제프가 실제로 낸 순서.
+ * §4.6 의 "다 던지기(요제프의 실제 선택)" 기준선은 이 순서로 재야 한다.
+ * 싼 것부터 내는 정책은 단계1(효율이 가장 높다)을 먼저 소진하므로 사실상
+ * 신중한 플레이가 되어 버리고, 요제프가 실제로 한 일 — 독일어 행정어(R42)와
+ * 부군 자치 정지(R52)를 도달률이 낮은 재위 전반에 내지른 것 — 을 재현하지
+ * 못한다.
+ */
+export const HISTORICAL_ORDER: string[] = [
+  "toleranz", "serfdom-cz", "censorship", "house-numbers", "primary-school",
+  "monastery", "kreis-reform", "university", "tariff",
+  "parish", "marriage", "civil-service", "monopoly",
+  "german-admin", "buda-move", "census", "german-university", "burial",
+  "suspend-varmegye", "serfdom-hu", "cadastre", "city-tax",
+  "city-admin", "civil-code", "abolish-estate-courts",
+  "penal-code", "manorial-courts", "tax-robot",
+];
+
 /** §9.3 검산 시나리오 — 헝가리 지향 개혁 8개 */
 export const HUNGARY_SCENARIO: string[] = [
   "serfdom-hu", "suspend-varmegye", "cadastre", "manorial-courts",

@@ -41,7 +41,11 @@ export const FACTIONS: Faction[] = [
   { id: "sk-peasant", labelKo: "슬로바키아계 농민", estate: "peasant", convergence: 25 },
   { id: "hr-peasant", labelKo: "크로아티아계 농민", estate: "peasant", convergence: 25 },
   { id: "sr-peasant", labelKo: "세르비아계 농민", estate: "peasant", convergence: 28 },
-  { id: "ro-peasant", labelKo: "루마니아계 농민", estate: "peasant", convergence: 28 },
+  // 트란실바니아 루마니아계 농민은 제국 내 최악의 조건이었다 — 정교회는 4개
+  // 공인 종교에 들지 못했고 농노 부담이 가장 무거웠다. 요제프 재위 유일의
+  // 대규모 농민 반란(1784 호레아)이 여기서 났다. 다른 농민과 같은 수렴값으로는
+  // 그 사건이 재현되지 않는다.
+  { id: "ro-peasant", labelKo: "루마니아계 농민", estate: "peasant", convergence: 38 },
   { id: "ru-peasant", labelKo: "루테니아계 농민", estate: "peasant", convergence: 25 },
   { id: "pl-peasant", labelKo: "폴란드계 농민", estate: "peasant", convergence: 25 },
   { id: "sl-peasant", labelKo: "슬로베니아계 농민", estate: "peasant", convergence: 25 },

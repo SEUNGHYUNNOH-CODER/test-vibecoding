@@ -2,7 +2,7 @@
  * §16.1 1단계 검증 하니스.
  * 실행: node --experimental-strip-types src/lib/josephii/verify.ts  (app/ 에서)
  */
-import { EDICTS, EDICT_BY_ID, HUNGARY_SCENARIO } from "./edicts.ts";
+import { EDICTS, EDICT_BY_ID, HISTORICAL_ORDER, HUNGARY_SCENARIO } from "./edicts.ts";
 import { THREE_HEX } from "./map-3hex.ts";
 import { MONARCHY } from "./map.ts";
 import type { World } from "./world.ts";
@@ -20,6 +20,7 @@ import {
 import {
   TOTAL_ROUNDS,
   advanceRound,
+  finalReport,
   aggregateNational,
   conflictFor,
   createGame,
@@ -201,8 +202,36 @@ rule("확인 4. 여력이 §6.3대로 대형 3개에서 축적이 멈추는가")
   line(`  §6.1 표는 권위 20에서 유입 7.2로 적었으나 공식값은 ${f(capacityInflow(20))}`);
 }
 
-// ═════════ 확인 5 — 기준선 대비 ΔR
-rule("확인 5. 111라운드 R 상승폭이 §4.5 기준선(+6)과 맞는가");
+// ═════════ 확인 5b — §4.6 전략별 목표선
+rule("확인 5. §4.6 전략별 목표선");
+{
+  const CHOSEN15 = [
+    "toleranz", "serfdom-cz", "censorship", "kreis-reform", "tariff", "primary-school",
+    "monastery", "marriage", "penal-code",
+    "parish", "civil-code", "cadastre", "serfdom-hu",
+    "suspend-varmegye", "tax-robot",
+  ];
+  const seeds = [1, 2, 3, 4, 5, 6, 7, 8];
+  const avg = (policy: Policy) =>
+    seeds.reduce((acc, sd) => {
+      const st = createGame(MONARCHY, { seed: sd });
+      for (let i = 0; i < TOTAL_ROUNDS; i++) {
+        const c = policy(st);
+        if (c) promulgate(MONARCHY, st, c);
+        advanceRound(MONARCHY, st);
+      }
+      return acc + finalReport(MONARCHY, st, st.startR).delta;
+    }, 0) / seeds.length;
+
+  line(`  무행동                  ΔR ${f(avg(() => null), 2).padStart(6)}   목표 −3 ~ 0`);
+  line(`  요제프의 실제 순서 (28개)  ΔR ${f(avg(sequential(HISTORICAL_ORDER)), 2).padStart(6)}   목표 +6 이하`);
+  line(`  잘 고른 15개             ΔR ${f(avg(greedy(CHOSEN15)), 2).padStart(6)}   목표 +12 ~ +18`);
+  line(`  ※ 싼 것부터 내는 정책은 단계1 을 먼저 소진해 사실상 신중한 플레이가 된다.`);
+  line(`     "다 던지기" 기준선은 §12.2 역사 순서로 재야 한다.`);
+}
+
+// ═════════ 확인 6 — 기준선 대비 ΔR
+rule("확인 6. 기여 배율 스윕");
 {
   const start = reachScore(createGame(MONARCHY, { seed: 1 }).national);
   const pool = EDICTS.map((e) => e.id);
