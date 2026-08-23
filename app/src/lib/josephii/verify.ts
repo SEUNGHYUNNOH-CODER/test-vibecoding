@@ -12,6 +12,7 @@ import {
   threeRoundSuccess,
   capacityInflow,
   EDICT_UPKEEP,
+  GAIN_SCALE,
   diffusionMonths,
 } from "./rules.ts";
 import {
@@ -21,10 +22,11 @@ import {
   makeRng,
   politicalResistance,
   populationResistance,
+  resistanceForEdict,
   runRound,
   type Policy,
 } from "./engine.ts";
-import type { GameState } from "./types.ts";
+import type { Axes, GameState } from "./types.ts";
 
 const f = (n: number, d = 1) => n.toFixed(d);
 const line = (s = "") => console.log(s);
@@ -54,14 +56,23 @@ rule("검산 0. §10.9 총합 검산 (사양서: P +82 / T +129 / F +99)");
   line(`  차이        P ${total.p - 82}  /  T ${total.t - 129}  /  F ${total.f - 99}`);
   line(`  T/P 비율: ${f(total.t / total.p, 2)}배 (사양서는 "30~50% 큼"으로 진단)`);
 
+  const scaled = {
+    p: total.p * GAIN_SCALE.p,
+    t: total.t * GAIN_SCALE.t,
+    f: total.f * GAIN_SCALE.f,
+  };
+  line(
+    `  축별 배율 P×${GAIN_SCALE.p} T×${GAIN_SCALE.t} F×${GAIN_SCALE.f} 적용 →` +
+      ` P ${f(scaled.p)} / T ${f(scaled.t)} / F ${f(scaled.f)}  (T/P ${f(scaled.t / scaled.p, 2)}배)`,
+  );
   const start = { p: 43, t: 49, f: 43 }; // §4.4 전체 시작값
-  for (const eff of [0.4, 0.5, 0.6]) {
-    const p = Math.min(100, start.p + total.p * eff);
-    const t = Math.min(100, start.t + total.t * eff);
-    const ff = Math.min(100, start.f + total.f * eff);
+  for (const eff of [0.4, 0.6]) {
+    const p = Math.min(100, start.p + scaled.p * eff);
+    const t = Math.min(100, start.t + scaled.t * eff);
+    const ff = Math.min(100, start.f + scaled.f * eff);
     line(
       `  실효 ${eff * 100}%: P ${f(p)} / T ${f(t)} / F ${f(ff)} → R ${f(reachScore({ p, t, f: ff }))}` +
-        `   (§4.5 균형 성공 = 62.5)`,
+        `  (시작 44.8 / 역사적 실제 50.8 / 균형 성공 62.5)`,
     );
   }
 }
@@ -91,7 +102,7 @@ type RunOpts = {
   resistanceStart?: "zero" | "convergence";
   resistanceScope?: "hex" | "opposed";
   k?: number;
-  gainScale?: number;
+  gainScale?: Partial<Axes>;
 };
 
 function run(
@@ -196,7 +207,7 @@ for (const [mode, scope] of [
 line(`  사양서 §9.3 추정: 72~75 정체, 착지율 15%`);
 {
   // 순차 반포에서 각 칙령이 부군에 도달한 시점의 저항과 성공률
-  line(`  — 부군 도착 시점별 (초기값 0, 헥스집계):`);
+  line(`  — 부군 도착 시점별 (채택안: 초기값=수렴값 / 반대세력):`);
   const state = createInitialState();
   const rng = makeRng(777);
   const policy = sequentialPolicy(HUNGARY_SCENARIO);
@@ -210,11 +221,15 @@ line(`  사양서 §9.3 추정: 72~75 정체, 착지율 15%`);
         seen.add(a.edictId);
         const varmegye = HEXES.find((h) => h.id === "varmegye")!;
         const res = state.hexes.varmegye.resistance["hu-noble"];
-        const pol = politicalResistance(state, varmegye);
-        const pp = enforcementRate(reachScore(state.hexes.varmegye.reach), pol, state.authority);
+        const applied = resistanceForEdict(state, varmegye, EDICT_BY_ID[a.edictId]);
+        const pp = enforcementRate(
+          reachScore(state.hexes.varmegye.reach),
+          applied,
+          state.authority,
+        );
         rows.push(
           `      R${String(state.round).padStart(3)} ${EDICT_BY_ID[a.edictId].labelKo.padEnd(16)}` +
-            ` 귀족저항 ${f(res).padStart(5)} 정치가중 ${f(pol).padStart(5)}` +
+            ` 귀족저항 ${f(res).padStart(5)} 적용저항 ${f(applied).padStart(5)}` +
             ` p ${f(pp, 3)} → 3라운드 ${f(threeRoundSuccess(pp) * 100).padStart(5)}%`,
         );
       }
@@ -235,12 +250,12 @@ rule("확인 3. 왕실 판무관(20)이 칙령 단계1(15)보다 항상 우세�
   const toleranz = EDICT_BY_ID["toleranz"];
   const expected = structuredClone(s);
   for (const h of HEXES) {
-    const p = enforcementRate(reachScore(s.hexes[h.id].reach), politicalResistance(s, h), 60);
+    const p = enforcementRate(reachScore(s.hexes[h.id].reach), resistanceForEdict(s, h, toleranz), 60);
     const q = threeRoundSuccess(p);
     const x = expected.hexes[h.id].reach;
-    x.p = Math.min(100, x.p + toleranz.gain.p * q);
-    x.t = Math.min(100, x.t + toleranz.gain.t * q);
-    x.f = Math.min(100, x.f + toleranz.gain.f * q);
+    x.p = Math.min(100, x.p + toleranz.gain.p * GAIN_SCALE.p * q);
+    x.t = Math.min(100, x.t + toleranz.gain.t * GAIN_SCALE.t * q);
+    x.f = Math.min(100, x.f + toleranz.gain.f * GAIN_SCALE.f * q);
   }
   const maxDiffusion = Math.max(
     ...HEXES.map((h) => diffusionMonths(h.crownlandDelay, h.kind, h.distanceBand)),
@@ -251,13 +266,18 @@ rule("확인 3. 왕실 판무관(20)이 칙령 단계1(15)보다 항상 우세�
   // (b) 왕실 판무관 — 진행 중 단계4(부군 자치 정지)의 부군 판정에 ×1.4
   const suspend = EDICT_BY_ID["suspend-varmegye"];
   const varmegye = HEXES.find((h) => h.id === "varmegye")!;
-  const pv = enforcementRate(reachScore(s.hexes.varmegye.reach), politicalResistance(s, varmegye), 60);
+  const pv2 = enforcementRate(
+    reachScore(s.hexes.varmegye.reach),
+    resistanceForEdict(s, varmegye, suspend),
+    60,
+  );
+  const pv = pv2;
   const dq = threeRoundSuccess(pv * 1.4) - threeRoundSuccess(pv);
   const withCommissioner = structuredClone(s);
   const xv = withCommissioner.hexes.varmegye.reach;
-  xv.p = Math.min(100, xv.p + suspend.gain.p * dq);
-  xv.t = Math.min(100, xv.t + suspend.gain.t * dq);
-  xv.f = Math.min(100, xv.f + suspend.gain.f * dq);
+  xv.p = Math.min(100, xv.p + suspend.gain.p * GAIN_SCALE.p * dq);
+  xv.t = Math.min(100, xv.t + suspend.gain.t * GAIN_SCALE.t * dq);
+  xv.f = Math.min(100, xv.f + suspend.gain.f * GAIN_SCALE.f * dq);
   const commissionerGain = reachScore(aggregateNational(withCommissioner)) - baseR;
 
   line(`  단계1 칙령 (관용령)    여력 ${edictCapacity} (반포15 + 유지1×${maxDiffusion + 3}) → 기대 국가 ΔR ${f(edictGain, 3)}  | 여력당 ${f((edictGain / edictCapacity) * 100, 3)}`);
@@ -304,8 +324,7 @@ rule("확인 5. 111라운드 R 상승폭이 §4.5 기준선(+6)과 맞는가");
     seeds.reduce((acc, sd) => acc + reachScore(run(greedyPolicy(pool), sd, opts).national), 0) /
     seeds.length;
   line(`  전력 반포 전략(9칙령), 8시드 평균:`);
-  line(`  ※ 3헥스 중 2개(크라이스 R66, 주 R43)가 쉬운 편이라 착지율이 190헥스보다 높다.`);
-  line(`     ΔR 절대값은 과대. k의 무력함은 지도 크기와 무관한 구조적 성질이다.`);
+  line(`  ※ 3헥스 지도라 ΔR 절대값은 참고치. k 의 유효성은 지도 크기와 무관하다.`);
   for (const scope of ["hex", "opposed"] as const) {
     for (const k of [1, 2, 4, 8]) {
       const r = mean({ resistanceScope: scope, k });
@@ -326,12 +345,15 @@ rule("확인 6. §10 P/T/F 기여값 보정 (결정 3의 손잡이)");
     seeds.reduce((acc, sd) => acc + reachScore(run(greedyPolicy(pool), sd, opts).national), 0) /
     seeds.length;
   line(`  전력 반포(=§6.4 "다작" 전략) 8시드 평균 ΔR. 목표: 역사적 실제 +6.0`);
-  line(`  기여 배율 | 헥스집계·초기0 | 반대세력·수렴값`);
-  for (const g of [1.0, 0.7, 0.5, 0.35, 0.25, 0.15]) {
-    const a = mean({ gainScale: g }) - start;
-    const b =
-      mean({ gainScale: g, resistanceScope: "opposed", resistanceStart: "convergence" }) - start;
-    line(`     ×${f(g, 2)}   |     ${(a >= 0 ? "+" : "") + f(a).padStart(5)}     |     ${(b >= 0 ? "+" : "") + f(b).padStart(5)}`);
+  line(`  채택 배율 P×${GAIN_SCALE.p} T×${GAIN_SCALE.t} F×${GAIN_SCALE.f} 를 1.00 으로 두고 위아래로 스윕`);
+  for (const m of [2.0, 1.5, 1.25, 1.0, 0.8, 0.6]) {
+    const gs: Partial<Axes> = {
+      p: GAIN_SCALE.p * m,
+      t: GAIN_SCALE.t * m,
+      f: GAIN_SCALE.f * m,
+    };
+    const a = mean({ gainScale: gs }) - start;
+    line(`     ×${f(m, 2)}  (P${f(gs.p!, 2)}/T${f(gs.t!, 2)}/F${f(gs.f!, 2)})  →  ΔR ${(a >= 0 ? "+" : "") + f(a)}`);
   }
 }
 

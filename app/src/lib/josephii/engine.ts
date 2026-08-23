@@ -7,6 +7,7 @@ import { EDICT_BY_ID } from "./edicts.ts";
 import { FACTION_BY_ID, HEXES, HEX_BY_ID } from "./map-3hex.ts";
 import {
   AUTHORITY_ON_ENACT,
+  GAIN_SCALE,
   K_RESISTANCE,
   AUTHORITY_START,
   CAPACITY_CAP,
@@ -46,8 +47,8 @@ export function createInitialState(
     resistanceStart?: "zero" | "convergence";
     resistanceScope?: "hex" | "opposed";
     k?: number;
-    /** §10 P/T/F 기여값 전역 배율 — 결정 3의 손잡이 */
-    gainScale?: number;
+    /** §10 P/T/F 기여값 축별 배율 — 결정 3의 손잡이 */
+    gainScale?: Partial<Axes>;
   } = {},
 ): GameState {
   const mode = opts.resistanceStart ?? RESISTANCE_START;
@@ -68,7 +69,7 @@ export function createInitialState(
     national: { p: 0, t: 0, f: 0 },
     resistanceScope: opts.resistanceScope ?? RESISTANCE_SCOPE,
     k: opts.k ?? K_RESISTANCE,
-    gainScale: opts.gainScale ?? 1,
+    gainScale: { ...GAIN_SCALE, ...opts.gainScale },
     log: [],
   };
   state.national = aggregateNational(state);
@@ -130,6 +131,13 @@ export function opposedResistance(state: GameState, hex: Hex, edict: Edict): num
     den += w;
   }
   return den === 0 ? 0 : num / den;
+}
+
+/** state 의 저항 해석 설정에 따라 §7.1 저항 항을 고른다 */
+export function resistanceForEdict(state: GameState, hex: Hex, edict: Edict): number {
+  return (state.resistanceScope ?? RESISTANCE_SCOPE) === "opposed"
+    ? opposedResistance(state, hex, edict)
+    : politicalResistance(state, hex);
 }
 
 /** §9.1 이해충돌도 조회 — 세력 예외가 계층 기본값을 덮는다 */
@@ -197,11 +205,11 @@ export function runRound(state: GameState, policy: Policy, rng: () => number): R
       const prog = active.byHex[hex.id];
       if (prog.status !== "pending") continue;
       const hexState = state.hexes[hex.id];
-      const resistance =
-        (state.resistanceScope ?? RESISTANCE_SCOPE) === "opposed"
-          ? opposedResistance(state, hex, edict)
-          : politicalResistance(state, hex);
-      const p = enforcementRate(reachScore(hexState.reach), resistance, state.authority);
+      const p = enforcementRate(
+        reachScore(hexState.reach),
+        resistanceForEdict(state, hex, edict),
+        state.authority,
+      );
       if (rng() < p) {
         prog.status = "enacted";
         applyEnactment(state, hex, edict);
@@ -251,9 +259,9 @@ function applyEnactment(state: GameState, hex: Hex, edict: Edict): void {
   const s = state.hexes[hex.id];
   const g = state.gainScale;
   s.reach = {
-    p: clamp01to100(s.reach.p + edict.gain.p * g),
-    t: clamp01to100(s.reach.t + edict.gain.t * g),
-    f: clamp01to100(s.reach.f + edict.gain.f * g),
+    p: clamp01to100(s.reach.p + edict.gain.p * g.p),
+    t: clamp01to100(s.reach.t + edict.gain.t * g.t),
+    f: clamp01to100(s.reach.f + edict.gain.f * g.f),
   };
   for (const factionId of Object.keys(hex.composition)) {
     const conflict = conflictFor(edict, factionId);

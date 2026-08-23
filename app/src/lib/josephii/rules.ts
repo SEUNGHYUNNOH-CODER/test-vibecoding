@@ -147,10 +147,12 @@ export const POLITICAL_WEIGHT: Record<Estate, number> = {
 };
 
 /**
- * 설계 결정 B: 저항 초기값 전부 0.
- * "convergence" 로 바꾸면 §7.3 기준 계산(헝가리 부군 37.2)이 그대로 재현된다.
+ * 저항 초기값 = 수렴값. 각 세력은 요제프 이전부터 고유한 구조적 긴장을 갖고
+ * 있고 개혁은 그 위에 얹힌다는 해석이다. §7.3 기준 계산(부군 37.2)이 이 값에서
+ * 나온다. "zero" 로 두면 귀족 반감기 69개월 때문에 재위 전반이 저저항 구간이
+ * 되어 "위험한 칙령을 먼저 낸다"가 지배 전략이 된다.
  */
-export const RESISTANCE_START: "zero" | "convergence" = "zero";
+export const RESISTANCE_START: "zero" | "convergence" = "convergence";
 
 // ─────────────────────────────────────── §9 저항 상승
 
@@ -162,6 +164,14 @@ export function resistanceRise(tier: number, conflict: number, k = K_RESISTANCE)
   return TIER_SCALE[tier] * conflict * k;
 }
 
+/**
+ * §10 P/T/F 기여값의 축별 배율. 사양서 원값으로는 전력 반포 시 ΔR 이 §4.5
+ * 기준선(+6)의 4배에 이르고, k 로는 교정되지 않는다(§9.2 자기제한이 k 를
+ * 상쇄한다). T 를 더 깎아 §10.9 의 T축 편중(T/P 1.82배)도 함께 해소한다.
+ *   축별 합계: P 68→20 / T 124→25 / F 81→24
+ */
+export const GAIN_SCALE: Axes = { p: 0.3, t: 0.2, f: 0.3 };
+
 // ─────────────────────────────────────── §15.2 미결 항목의 잠정 기본값
 
 /**
@@ -172,7 +182,7 @@ export function resistanceRise(tier: number, conflict: number, k = K_RESISTANCE)
  * 저항 자리에 그대로 넣는데, 같은 상태의 헥스 집계 저항은 §8.6 기준 37.2 다.
  * 두 값이 다르므로 §9.2·§9.3·§17 의 결론은 "opposed" 에서만 성립한다.
  */
-export const RESISTANCE_SCOPE: "hex" | "opposed" = "hex";
+export const RESISTANCE_SCOPE: "hex" | "opposed" = "opposed";
 
 /**
  * 관철 판정 기준 (§15.2 미정). 확산이 끝난 시점에 가중 헥스의 이 비율 이상이

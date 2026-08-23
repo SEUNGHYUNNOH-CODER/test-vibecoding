@@ -107,7 +107,7 @@ export interface GameState {
   resistanceScope: "hex" | "opposed";
   /** §9.1 난이도 상수 k */
   k: number;
-  /** §10 도달률 기여 전역 배율 */
-  gainScale: number;
+  /** §10 도달률 기여 축별 배율 */
+  gainScale: Axes;
   log: string[];
 }
