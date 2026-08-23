@@ -91,6 +91,7 @@ type RunOpts = {
   resistanceStart?: "zero" | "convergence";
   resistanceScope?: "hex" | "opposed";
   k?: number;
+  gainScale?: number;
 };
 
 function run(
@@ -312,6 +313,25 @@ rule("확인 5. 111라운드 R 상승폭이 §4.5 기준선(+6)과 맞는가");
         `     ${scope === "hex" ? "헥스집계" : "반대세력"} k=${String(k).padEnd(2)} → 최종 R ${f(r, 1).padStart(5)}  (ΔR ${(r - start >= 0 ? "+" : "") + f(r - start, 1)})`,
       );
     }
+  }
+}
+
+// ═════════ 확인 6 — §10 기여값을 얼마나 낮춰야 기준선에 닿는가
+rule("확인 6. §10 P/T/F 기여값 보정 (결정 3의 손잡이)");
+{
+  const start = reachScore(createInitialState().national);
+  const pool = EDICTS.map((e) => e.id);
+  const seeds = [1, 2, 3, 4, 5, 6, 7, 8];
+  const mean = (opts: RunOpts) =>
+    seeds.reduce((acc, sd) => acc + reachScore(run(greedyPolicy(pool), sd, opts).national), 0) /
+    seeds.length;
+  line(`  전력 반포(=§6.4 "다작" 전략) 8시드 평균 ΔR. 목표: 역사적 실제 +6.0`);
+  line(`  기여 배율 | 헥스집계·초기0 | 반대세력·수렴값`);
+  for (const g of [1.0, 0.7, 0.5, 0.35, 0.25, 0.15]) {
+    const a = mean({ gainScale: g }) - start;
+    const b =
+      mean({ gainScale: g, resistanceScope: "opposed", resistanceStart: "convergence" }) - start;
+    line(`     ×${f(g, 2)}   |     ${(a >= 0 ? "+" : "") + f(a).padStart(5)}     |     ${(b >= 0 ? "+" : "") + f(b).padStart(5)}`);
   }
 }
 

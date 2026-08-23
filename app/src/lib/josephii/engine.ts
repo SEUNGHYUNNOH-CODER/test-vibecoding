@@ -46,6 +46,8 @@ export function createInitialState(
     resistanceStart?: "zero" | "convergence";
     resistanceScope?: "hex" | "opposed";
     k?: number;
+    /** §10 P/T/F 기여값 전역 배율 — 결정 3의 손잡이 */
+    gainScale?: number;
   } = {},
 ): GameState {
   const mode = opts.resistanceStart ?? RESISTANCE_START;
@@ -66,6 +68,7 @@ export function createInitialState(
     national: { p: 0, t: 0, f: 0 },
     resistanceScope: opts.resistanceScope ?? RESISTANCE_SCOPE,
     k: opts.k ?? K_RESISTANCE,
+    gainScale: opts.gainScale ?? 1,
     log: [],
   };
   state.national = aggregateNational(state);
@@ -246,10 +249,11 @@ export function runRound(state: GameState, policy: Policy, rng: () => number): R
 /** 관철된 헥스에만 도달률 가산 + 저항 상승 (설계 결정 A, §9.1) */
 function applyEnactment(state: GameState, hex: Hex, edict: Edict): void {
   const s = state.hexes[hex.id];
+  const g = state.gainScale;
   s.reach = {
-    p: clamp01to100(s.reach.p + edict.gain.p),
-    t: clamp01to100(s.reach.t + edict.gain.t),
-    f: clamp01to100(s.reach.f + edict.gain.f),
+    p: clamp01to100(s.reach.p + edict.gain.p * g),
+    t: clamp01to100(s.reach.t + edict.gain.t * g),
+    f: clamp01to100(s.reach.f + edict.gain.f * g),
   };
   for (const factionId of Object.keys(hex.composition)) {
     const conflict = conflictFor(edict, factionId);
