@@ -38,6 +38,8 @@ export const HEXES: Hex[] = [
     crownlandKo: "헝가리 왕국",
     regionId: "hungary",
     regionKo: "헝가리 본토",
+    commandId: "varmegye-cmd",
+    commandKo: "헝가리 본토",
     urbanity: 0,
     crownlandDelay: 2, // §3.1 헝가리 = 포조니/부다 2개월
     distanceBand: 1, // 중거리 → 총 7개월 (§3.4 헝가리 부군 6~8)
@@ -54,6 +56,8 @@ export const HEXES: Hex[] = [
     crownlandKo: "보헤미아 왕관령",
     regionId: "bohemia",
     regionKo: "보헤미아",
+    commandId: "kreis-cmd",
+    commandKo: "보헤미아",
     urbanity: 0,
     crownlandDelay: 1, // §3.1 프라하
     distanceBand: 0, // → 총 3개월 (§3.4 보헤미아 크라이스 3~4)
@@ -70,6 +74,8 @@ export const HEXES: Hex[] = [
     crownlandKo: "오스트리아령 네덜란드",
     regionId: "netherlands",
     regionKo: "오스트리아령 네덜란드",
+    commandId: "province-cmd",
+    commandKo: "오스트리아령 네덜란드",
     urbanity: 0,
     crownlandDelay: 4, // §3.1 브뤼셀
     distanceBand: 0, // → 총 10개월 (§3.4 네덜란드 주 10~11)

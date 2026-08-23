@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import type { GameState } from "@/lib/josephii/types";
 import { MONARCHY } from "@/lib/josephii/map";
-import { reachScore } from "@/lib/josephii/rules";
 import {
   TOTAL_ROUNDS,
   type ActionId,
@@ -11,9 +10,11 @@ import {
   advanceRound,
   calendarLabel,
   createGame,
+  dismissEffect,
   finalReport,
   promulgate,
   reproclaim,
+  suppress,
   withdraw,
 } from "@/lib/josephii/engine";
 import { StatusBar } from "@/components/josephii/StatusBar";
@@ -61,7 +62,7 @@ export default function Game() {
   function newGame() {
     const s = createGame(MONARCHY);
     setState(s);
-    setStartR(reachScore(s.national));
+    setStartR(s.startR);
     setTab("map");
   }
 
@@ -147,6 +148,8 @@ export default function Game() {
               mutate((s) => withdraw(MONARCHY, s, id, crownlandId))
             }
             onAct={(id: ActionId, targetId) => mutate((s) => act(MONARCHY, s, id, targetId))}
+            onDismiss={(effectId) => mutate((s) => dismissEffect(s, effectId))}
+            onSuppress={(revoltId) => mutate((s) => suppress(MONARCHY, s, revoltId))}
           />
         )}
         {tab === "log" && <LogView state={state} />}
@@ -181,13 +184,18 @@ export default function Game() {
             <p className="text-sm leading-relaxed text-muted-foreground">{report.verdictKo}</p>
             <dl className="space-y-1 border-y py-3 text-sm tabular-nums">
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">최종 도달률 R</dt>
+                <dt className="text-muted-foreground">최종 평가 ΔR</dt>
                 <dd className="font-medium">
-                  {report.r.toFixed(1)}{" "}
-                  <span className="text-muted-foreground">
-                    ({report.delta >= 0 ? "+" : ""}
-                    {report.delta.toFixed(1)})
-                  </span>
+                  {report.delta >= 0 ? "+" : ""}
+                  {report.delta.toFixed(1)}
+                </dd>
+              </div>
+              <div className="flex justify-between text-xs">
+                <dt className="text-muted-foreground">종료 시점 / 누적 평균</dt>
+                <dd className="text-muted-foreground">
+                  {report.endDelta >= 0 ? "+" : ""}
+                  {report.endDelta.toFixed(1)} / {report.meanDelta >= 0 ? "+" : ""}
+                  {report.meanDelta.toFixed(1)}
                 </dd>
               </div>
               <div className="flex justify-between">

@@ -51,9 +51,15 @@ export interface Hex {
   /** §2.1 L1 왕관령 — 부분 철회·황제 순행의 단위 */
   crownlandId: string;
   crownlandKo: string;
-  /** §2.1 L2 중간계층 — 왕실 판무관의 단위. 종교·언어 구성의 해상도 */
+  /**
+   * §2.4 종교·문화권 구성의 해상도. 판무관 배치 단위와는 다르다 —
+   * 구성은 세밀할수록 좋고, 배치 단위는 §2.6의 스케일 제약을 받는다.
+   */
   regionId: string;
   regionKo: string;
+  /** §2.6 판무관 배치 단위. 중간계층이 없는 왕관령은 왕관령 자체가 단위다. */
+  commandId: string;
+  commandKo: string;
   /** §2.5 도시성 0~3. 헝가리 권역만 유효, 그 밖은 0 */
   urbanity: 0 | 1 | 2 | 3;
   /** §3.1 빈 → 왕관령 행정 중심 지연 (개월) */
@@ -97,6 +103,8 @@ export interface HexEdictProgress {
   status: "in-transit" | "pending" | "enacted" | "failed";
   /** 실제로 가산된 도달률 — 철회 시 정확히 되돌리기 위해 기록한다 */
   appliedGain?: Axes;
+  /** §7.5 계열 C 부분 효과로 가산된 P */
+  partialGain?: number;
 }
 
 export interface ActiveEdict {
@@ -114,13 +122,16 @@ export interface ActiveEdict {
 /** §11.2 지속 효과 (왕실 판무관 등) */
 export interface ActiveEffect {
   id: string;
-  kind: "commissioner" | "progress";
+  kind: "commissioner" | "official";
   labelKo: string;
-  /** 판무관은 중간계층 id, 순행은 왕관령 id */
+  /** 판무관은 판무관 단위 id, 관리 교체는 헥스 id */
   targetId: string;
   targetKo: string;
   multiplier: number;
+  /** 0 이면 무기한 상주 */
   untilRound: number;
+  /** 월 유지비 */
+  upkeep: number;
 }
 
 export interface LogEntry {
@@ -139,6 +150,25 @@ export interface HexState {
   reach: Axes;
   /** 세력 id → 저항 0~100 (§8.4) */
   resistance: Record<string, number>;
+  /** §9.1 최근 6라운드 농민 저항 상승 — 충격이 방아쇠이지 누적이 아니다 */
+  shock: number[];
+  /** 이번 라운드에 쌓인 농민 저항 상승. 정산 때 shock 창으로 넘긴다 */
+  shockPending: number;
+  /** §9.2 도시민 저항이 임계 이상으로 유지된 연속 라운드 수 */
+  burgherHigh: number;
+}
+
+/** §9 반란 — 계층마다 고저항의 결과가 다르다 */
+export interface Revolt {
+  id: string;
+  kind: "peasant" | "burgher";
+  labelKo: string;
+  /** 봉기 중인 헥스. 도시민 혁명은 왕관령 전체 */
+  hexIds: string[];
+  crownlandId: string;
+  startRound: number;
+  /** 방아쇠가 된 칙령 — 부분 철회로 해소할 대상 */
+  triggerEdictId?: string;
 }
 
 export interface GameState {
@@ -160,6 +190,16 @@ export interface GameState {
   /** §2.5 적대 전환 — 도시 행정 개편이 관철되면 true, 도시성 보정이 반감된다 */
   urbanityHalved: boolean;
   authorityDelta: AuthorityBreakdown;
+  /** §14.2 누적 판정 — 매 라운드 R 을 더한다 */
+  cumulativeR: number;
+  cumulativeRounds: number;
+  /** 시작 시점 R — 판정 기준선 */
+  startR: number;
+  revolts: Revolt[];
+  /** 헥스별 마지막으로 농민 저항을 올린 칙령 — 부분 철회 해소 대상 */
+  lastTrigger: Record<string, string>;
+  /** 헥스별 반란 재발 금지 해제 라운드 */
+  revoltCooldown: Record<string, number>;
   /** 시드 고정 난수의 현재 상태 — 저장/복원에 필요 */
   rngState: number;
   log: LogEntry[];

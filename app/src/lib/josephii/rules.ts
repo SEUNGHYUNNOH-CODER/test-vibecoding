@@ -104,6 +104,13 @@ export const AUTHORITY_ON_WITHDRAW: Record<number, number> = { 1: -4, 2: -7, 3: 
 
 export const CAPACITY_CAP = 100;
 
+/**
+ * §6.1 시작 재고. 유입만으로는 13.2 < 단계1 비용 15 라서 첫 달에 아무것도
+ * 할 수 없었다. 요제프는 단독 통치 첫 12개월에 400건 이상을 발부했으므로
+ * 즉시 행동 가능한 것이 맞다.
+ */
+export const CAPACITY_START = 28;
+
 /** §6.1 매월 유입 = 12 × (0.5 + 권위/100) */
 export function capacityInflow(authority: number): number {
   return 12 * (0.5 + clamp01to100(authority) / 100);
@@ -200,6 +207,72 @@ export const GAIN_SCALE: Axes = { p: 0.3, t: 0.2, f: 0.3 };
  * 두 값이 다르므로 §9.2·§9.3·§17 의 결론은 "opposed" 에서만 성립한다.
  */
 export const RESISTANCE_SCOPE: "hex" | "opposed" = "opposed";
+
+// ─────────────────────────────────────── §7.5 계열 C — 실패 헥스 부분 효과
+
+/**
+ * 집행 저지력은 정치 비중(귀족 ×6)으로, 소문 확산력은 인구 비중으로 잰다.
+ * 같은 헥스에서 두 값이 정반대로 나온다 — 귀족이 공포를 거부해도 농민은
+ * 이미 알고 있는 상태다. 요제프 시대에 실제로 벌어진 일이고, 1784년 호레아
+ * 반란이 그 극단이다.
+ *
+ * 사양서의 "발동 임계 20"은 채택하지 않았다. 교구 재편·형법전·토지 측량이
+ * 전부 20.5로 임계에 붙어 있어서, 다른 칙령이 농민 저항을 2만 올려도 부분
+ * 효과가 통째로 꺼지는 절벽이 생긴다. 우호지지에 비례하는 연속 함수로 둔다.
+ */
+export const PARTIAL_GAMMA = 0.5;
+
+/** 철회 시 배신 — 기대를 올렸다가 거두는 것이 처벌받는다 */
+export const BETRAYAL_RESISTANCE = 8;
+
+// ─────────────────────────────────────── §9 반란
+
+/** §9.1 농민 반란 — 충격이 방아쇠다. 누적만으로는 반감기 17개월 때문에 안 터진다 */
+export const PEASANT_REVOLT = {
+  /** 최근 N라운드 */
+  window: 6,
+  /**
+   * 그 안의 누적 저항 상승 임계.
+   * 사양서 값 10 은 실측상 도달 불가였다 — 농민을 적대하는 칙령이 4개뿐이고
+   * 최대 6라운드 충격이 7.2(예배·매장 규정 단독)에서 막힌다. 7 로 낮춰
+   * 그 칙령 하나가 방아쇠가 되게 한다. §10.2 가 "단계4는 함정"이라 한 것과
+   * 맞고, 관 재사용령이 6개월 만에 철회된 역사와도 맞다.
+   */
+  shock: 7,
+  /**
+   * 현재 저항 임계. 사양서 값 35 는 수렴값 25 바로 위라 거의 항상 충족되어
+   * 조건으로 기능하지 못했다(실측 최대 56). 40 으로 올려 "이미 다른 이유로
+   * 화가 나 있던 곳"에서만 터지게 한다.
+   */
+  level: 40,
+  /** 발생 즉시 권위 (국가 단위, 일회성) */
+  authorityHit: -8,
+  /** 진행 중 반란 헥스 집행률 */
+  enforcement: 0.2,
+  /** 진행 중 반란 헥스 인구 도달 (월) */
+  reachDrain: -1,
+  /** 자연 소멸까지 */
+  duration: 12,
+  cooldown: 12,
+} as const;
+
+/** §9.2 도시민 혁명 — 브라반트형. 왕관령 전체가 이탈한다 */
+export const BURGHER_REVOLT = {
+  level: 75,
+  /** 임계 이상 유지 필요 라운드 */
+  sustain: 3,
+  authorityHit: -18,
+  enforcement: 0.1,
+  reachDrain: -1,
+  /** 해소 조건: 이 값 이상 충돌하는 칙령을 그 왕관령에서 전부 철회 */
+  revokeConflict: 2,
+} as const;
+
+/** §9.3 성직자 — 반란이 아니라 영역 차단 */
+export const CLERGY_BLOCK = { level: 70, enforcement: 0.3, area: 1 } as const;
+
+/** §9.1 진압 */
+export const SUPPRESS = { cost: 25, resistance: -20, authority: -6, backlash: 10 } as const;
 
 /**
  * 관철 판정 기준 (§15.2 미정). 확산이 끝난 시점에 가중 헥스의 이 비율 이상이

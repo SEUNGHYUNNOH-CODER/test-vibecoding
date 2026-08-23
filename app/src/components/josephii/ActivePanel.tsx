@@ -10,10 +10,13 @@ import {
   type ActionId,
   canAct,
   canReproclaim,
+  canSuppress,
   enactedWeightedRatio,
   reproclaimCost,
+  revolutionBlockers,
 } from "@/lib/josephii/engine";
-import { CROWNLANDS, REGIONS } from "@/lib/josephii/map";
+import { SUPPRESS } from "@/lib/josephii/rules";
+import { CROWNLANDS, COMMANDS } from "@/lib/josephii/map";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -23,12 +26,16 @@ export function ActivePanel({
   onReproclaim,
   onWithdraw,
   onAct,
+  onDismiss,
+  onSuppress,
 }: {
   world: World;
   state: GameState;
   onReproclaim: (edictId: string) => void;
   onWithdraw: (edictId: string, crownlandId?: string) => void;
   onAct: (id: ActionId, targetId?: string) => void;
+  onDismiss: (effectId: string) => void;
+  onSuppress: (revoltId: string) => void;
 }) {
   const [withdrawTarget, setWithdrawTarget] = useState<string | null>(null);
   const [actionTarget, setActionTarget] = useState<ActionId | null>(null);
@@ -37,6 +44,53 @@ export function ActivePanel({
 
   return (
     <div className="space-y-5 p-4">
+      {state.revolts.length > 0 && (
+        <section>
+          <h3 className="mb-1.5 text-xs font-medium text-destructive">
+            진행 중인 봉기 {state.revolts.length}건
+          </h3>
+          <div className="space-y-1.5">
+            {state.revolts.map((r) => {
+              const blockers = r.kind === "burgher"
+                ? revolutionBlockers(world, state, r.crownlandId)
+                : [];
+              return (
+                <div key={r.id} className="rounded-md border border-destructive/40 bg-destructive/5 p-2.5">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-[13px] font-medium">
+                      {r.labelKo} · {world.hexById[r.hexIds[0]].crownlandKo}
+                    </span>
+                    <span className="text-[11px] tabular-nums text-muted-foreground">
+                      R{r.startRound} 발생 · {r.hexIds.length}헥스
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                    {r.kind === "peasant"
+                      ? `집행률 ×0.2, 인구 도달이 매달 깎인다. 방아쇠가 된 ${
+                          r.triggerEdictId ? EDICT_BY_ID[r.triggerEdictId].labelKo : "칙령"
+                        }을 이 왕관령에서 철회하면 즉시 끝난다.`
+                      : blockers.length > 0
+                        ? `집행률 ×0.1. 진압할 수 없다. 도시민을 적대한 칙령 ${blockers.length}건을 이 왕관령에서 모두 철회해야 끝난다 — ${blockers.map((e) => e.labelKo).join(", ")}`
+                        : "집행률 ×0.1. 도시민 적대 칙령이 모두 철회되었다."}
+                  </p>
+                  {r.kind === "peasant" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mt-2 h-7 text-[11px]"
+                      disabled={!canSuppress(state, r.id)}
+                      onClick={() => onSuppress(r.id)}
+                    >
+                      진압 (여력 {SUPPRESS.cost} · 권위 {SUPPRESS.authority} · 같은 문화권 농민 저항 +{SUPPRESS.backlash})
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <section>
         <h3 className="mb-1.5 text-xs font-medium">액션</h3>
         <div className="space-y-1.5">
@@ -62,8 +116,22 @@ export function ActivePanel({
         {state.effects.length > 0 && (
           <div className="mt-2 space-y-1">
             {state.effects.map((e) => (
-              <div key={e.id} className="rounded-md bg-muted/50 px-2.5 py-1.5 text-[11px]">
-                {e.targetKo} · {e.labelKo} — R{e.untilRound}까지 집행률 ×{e.multiplier}
+              <div
+                key={e.id}
+                className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2.5 py-1.5 text-[11px]"
+              >
+                <span>
+                  {e.targetKo} · {e.labelKo} — 집행률 ×{e.multiplier}
+                  {e.upkeep > 0 && ` · 유지 월 ${e.upkeep}`}
+                </span>
+                {e.kind === "commissioner" && (
+                  <button
+                    onClick={() => onDismiss(e.id)}
+                    className="shrink-0 text-muted-foreground underline"
+                  >
+                    철수
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -134,11 +202,25 @@ export function ActivePanel({
         <PickerDialog
           titleKo={ACTIONS.find((a) => a.id === actionTarget)!.labelKo}
           noteKo={ACTIONS.find((a) => a.id === actionTarget)!.descKo}
-          options={(actionTarget === "commissioner" ? REGIONS : CROWNLANDS).map((x) => ({
-            id: x.id,
-            labelKo: x.labelKo,
-            subKo: `${x.hexIds.length}헥스`,
-          }))}
+          options={
+            actionTarget === "commissioner"
+              ? COMMANDS.map((x) => ({
+                  id: x.id,
+                  labelKo: x.labelKo,
+                  subKo: `${x.hexIds.length}헥스`,
+                }))
+              : actionTarget === "official"
+                ? world.hexes.map((h) => ({
+                    id: h.id,
+                    labelKo: h.labelKo,
+                    subKo: h.crownlandKo,
+                  }))
+                : CROWNLANDS.map((x) => ({
+                    id: x.id,
+                    labelKo: x.labelKo,
+                    subKo: `${x.hexIds.length}헥스`,
+                  }))
+          }
           onPick={(id) => {
             onAct(actionTarget, id);
             setActionTarget(null);
