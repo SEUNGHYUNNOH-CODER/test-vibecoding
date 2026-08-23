@@ -31,19 +31,36 @@ export function clamp01to100(v: number): number {
 
 /** §3.2 행정 중심 → 헥스 침투 (개월) */
 export const PENETRATION_MONTHS: Record<HexKind, number> = {
-  varmegye: 4,
+  "military-frontier": 1,
   kreis: 2,
+  varmegye: 4,
+  "saxon-seat": 6,
+  "szekely-seat": 6,
   province: 6,
 };
 
-/** §3 1단계 + 2단계 + 3단계 */
+/** §2.5 도시성에 따른 부군 침투 단축 (헝가리 권역 한정) */
+const URBANITY_PENETRATION: Record<number, number> = { 0: 4, 1: 3.5, 2: 3, 3: 2 };
+
+/** §3 1단계 + 2단계 + 3단계. 부군만 도시성 보정을 받는다. */
 export function diffusionMonths(
   crownlandDelay: number,
   kind: HexKind,
   distanceBand: number,
+  urbanity = 0,
 ): number {
-  return crownlandDelay + PENETRATION_MONTHS[kind] + distanceBand;
+  const penetration =
+    kind === "varmegye" ? URBANITY_PENETRATION[urbanity] : PENETRATION_MONTHS[kind];
+  return Math.ceil(crownlandDelay + penetration + distanceBand);
 }
+
+/** §2.5 도시성에 따른 도달률 기초값 보정 */
+export const URBANITY_REACH_BONUS: Record<number, Axes> = {
+  0: { p: 0, t: 0, f: 0 },
+  1: { p: 0, t: 0, f: 8 },
+  2: { p: 3, t: 0, f: 15 },
+  3: { p: 6, t: 5, f: 25 },
+};
 
 // ─────────────────────────────────────── §5 권위
 

@@ -26,8 +26,14 @@ export interface Axes {
 /** §8.1 계층. 수렴속도(§8.4)·연대계수(§8.4)·정치배율(§8.6)이 여기에 걸린다. */
 export type Estate = "noble" | "clergy" | "burgher" | "peasant";
 
-/** §2.3 헥스 유형. 3헥스 검증에 필요한 3종만. */
-export type HexKind = "varmegye" | "kreis" | "province";
+/** §2.3 헥스 유형 6종 */
+export type HexKind =
+  | "varmegye" // 부군 — 귀족 총회가 수장 선출. 왕권의 경쟁자
+  | "kreis" // 크라이스·피어텔 — 중앙 임명. 왕권의 팔
+  | "saxon-seat" // 작센 의석 — 단체 자치, 특허장 보유
+  | "szekely-seat" // 세케이 의석 — 집단 귀족 신분, 병역 대가 면세
+  | "military-frontier" // 국경연대구 — 군 직할. 민정 부재
+  | "province"; // 주 — 신분제 의회, 헌장 보유
 
 /** §8.1 세력 = 문화권 × 계층. */
 export interface Faction {
@@ -42,6 +48,14 @@ export interface Hex {
   id: string;
   labelKo: string;
   kind: HexKind;
+  /** §2.1 L1 왕관령 — 부분 철회·황제 순행의 단위 */
+  crownlandId: string;
+  crownlandKo: string;
+  /** §2.1 L2 중간계층 — 왕실 판무관의 단위. 종교·언어 구성의 해상도 */
+  regionId: string;
+  regionKo: string;
+  /** §2.5 도시성 0~3. 헝가리 권역만 유효, 그 밖은 0 */
+  urbanity: 0 | 1 | 2 | 3;
   /** §3.1 빈 → 왕관령 행정 중심 지연 (개월) */
   crownlandDelay: number;
   /** §3.3 거리대 보정: 근 0 / 중 1 / 원 2 (개월) */
@@ -63,6 +77,10 @@ export interface ConflictSpec {
 export interface Edict {
   id: string;
   labelKo: string;
+  /** §10 표의 연도 — 서사 표시용 */
+  year?: string;
+  /** 사양서가 그 칙령에 붙인 설계 메모 */
+  noteKo?: string;
   /** §10 영역 1~7 */
   area: number;
   /** §10 단계 1~4 — 비용(§6.2)·규모계수(§9.1)·권위 변동(§5.3)의 기준 */
@@ -77,6 +95,8 @@ export interface HexEdictProgress {
   arrivalRound: number;
   attemptsLeft: number;
   status: "in-transit" | "pending" | "enacted" | "failed";
+  /** 실제로 가산된 도달률 — 철회 시 정확히 되돌리기 위해 기록한다 */
+  appliedGain?: Axes;
 }
 
 export interface ActiveEdict {
@@ -87,6 +107,32 @@ export interface ActiveEdict {
   inProgress: boolean;
   /** §5.3 관철 보너스를 이미 정산했는가 */
   settled: boolean;
+  /** §11.3 철회된 왕관령 id 목록. 전면 철회면 모든 왕관령이 들어간다 */
+  withdrawnFrom: string[];
+}
+
+/** §11.2 지속 효과 (왕실 판무관 등) */
+export interface ActiveEffect {
+  id: string;
+  kind: "commissioner" | "progress";
+  labelKo: string;
+  /** 판무관은 중간계층 id, 순행은 왕관령 id */
+  targetId: string;
+  targetKo: string;
+  multiplier: number;
+  untilRound: number;
+}
+
+export interface LogEntry {
+  round: number;
+  text: string;
+  tone?: "good" | "bad" | "event";
+}
+
+/** §5.1 — 자동 변동과 사건 변동을 분리해 보여줘야 하락이 벌로 오독되지 않는다 */
+export interface AuthorityBreakdown {
+  drift: number;
+  events: number;
 }
 
 export interface HexState {
@@ -96,11 +142,13 @@ export interface HexState {
 }
 
 export interface GameState {
+  worldId: string;
   round: number;
   authority: number;
   capacity: number;
   hexes: Record<string, HexState>;
   active: ActiveEdict[];
+  effects: ActiveEffect[];
   /** 국가 집계 도달률 (§4.4 집계 가중치) */
   national: Axes;
   /** §7.1 저항 해석 (rules.ts RESISTANCE_SCOPE 참조) */
@@ -109,5 +157,11 @@ export interface GameState {
   k: number;
   /** §10 도달률 기여 축별 배율 */
   gainScale: Axes;
-  log: string[];
+  /** §2.5 적대 전환 — 도시 행정 개편이 관철되면 true, 도시성 보정이 반감된다 */
+  urbanityHalved: boolean;
+  authorityDelta: AuthorityBreakdown;
+  /** 시드 고정 난수의 현재 상태 — 저장/복원에 필요 */
+  rngState: number;
+  log: LogEntry[];
+  gameOver: boolean;
 }
